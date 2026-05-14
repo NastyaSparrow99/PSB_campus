@@ -1,11 +1,19 @@
-<script setup></script>
 
 <template>
   <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <div class="app">
+    <!-- Router вствляет текущую страницу в зависимости от URL -->
+    <router-view />
+  </div>
 </template>
 
-<style scoped></style>
+<script setup></script>
+
+<style scoped>
+.app {
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background-color: #f5f6fa;
+  color: #111827;
+}
+</style>// scoped- стили действ. только на этот компонент
