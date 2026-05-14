@@ -7,6 +7,6 @@ import router from './router'
 const app = createApp(App)
 
 app.use(createPinia())
-app.use(router)
+app.use(router) //Если этой строки нет, <router-view /> работать не будет
 
 app.mount('#app')
