@@ -1,22 +1,74 @@
 <template>
-  <section  class="page">
-    <h1>PSB Campus</h1>
-    <p>страница входа в систему</p>
-    <nav class="demo-nav">
-        <RouterLink to="/student">Перейти в кабинет студента</RouterLink>
-      <RouterLink to="/teacher">Перейти в кабинет преподавателя</RouterLink>
-    </nav>
+  <section class="page">
+    <div class="card">
+      <h1>PSB Campus</h1>
+
+
+
+      <div class="actions">
+        <button type="button" @click="loginAsStudent">
+          Войти как студент
+        </button>
+
+        <button type="button" @click="loginAsTeacher">
+          Войти как преподаватель
+        </button>
+      </div>
+
+      <p v-if="authStore.currentUser" class="current-user">
+        Текущий пользователь:
+        <b>{{ authStore.currentUser.name }}</b>
+        —
+        {{ authStore.currentUser.role }}
+      </p>
+    </div>
   </section>
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/authStore'
 
+const router = useRouter()
+const authStore = useAuthStore() //подключаем хранилище
+
+function loginAsStudent() {
+  authStore.login({ // функция  присваивания currentUser
+    id: 1,
+    name: 'Настя',
+    role: 'student',
+  })
+
+  router.push('/student') // как navigate('/student')
+}
+
+function loginAsTeacher() {
+  authStore.login({
+    id: 2,
+    name: 'Алексей Иванович',
+    role: 'teacher',
+  })
+
+  router.push('/teacher')
+}
 </script>
 
 <style scoped>
 .page {
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 48px;
+}
+
+.card {
+  width: 100%;
+  max-width: 480px;
+  padding: 32px;
+  border-radius: 10px;
+  background-color: white;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
 }
 
 h1 {
@@ -29,14 +81,29 @@ p {
   color: #4b5563;
 }
 
-.demo-nav {
+.actions {
   display: flex;
-  gap: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.demo-nav a {
-  color: #2563eb;
+button {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  background-color: #2563eb;
+  color: white;
   font-weight: 700;
-  text-decoration: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #1d4ed8;
+}
+
+.current-user {
+  margin-top: 24px;
+  margin-bottom: 0;
+  color: #111827;
 }
 </style>

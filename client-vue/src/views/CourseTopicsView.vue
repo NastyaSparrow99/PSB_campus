@@ -1,23 +1,56 @@
 <template>
   <section class="page">
-    <RouterLink to="/student" class="back-link">
-      ← Вернуться в кабинет
+    <RouterLink
+      :to="`/course/${route.params.courseId}/topics`"
+      class="back-link"
+    >
+      ← К списку тем
     </RouterLink>
-    <h1>Темы курса</h1>
-<!-- courseId динамическое значение же из index.js  -->
+
+    <h1>Страница курса</h1>
+
     <p>
-      ID курса из адреса:
-      <!-- получает ID курса из URL  -->
-      <b>{{ route.params.courseId }}</b> 
+      Текущий пользователь:
+      <b>{{ authStore.currentUser?.name }}</b>
     </p>
-    <RouterLink :to="`/course/${route.params.courseId}/topic/1`" class="link">
-      Открыть тему 1
-    </RouterLink>
-    </section>
-    </template>
+
+    <p>
+      Роль:
+      <b>{{ authStore.currentUser?.role }}</b>
+    </p>
+
+    <p>
+      ID курса:
+      <b>{{ route.params.courseId }}</b>
+    </p>
+
+    <p v-if="route.params.topicId">
+      ID темы:
+      <b>{{ route.params.topicId }}</b>
+    </p>
+
+    <p v-else>
+      Тема не выбрана. Это старый маршрут курса для обратной совместимости.
+    </p>
+
+    <button type="button"  v-on:click="logout">
+      Выйти
+    </button>
+  </section>
+</template>
+
 <script setup>
-import { useRoute } from 'vue-router'
-const route = useRoute() //храним в переменной route параметры из URL
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
+
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+
+function logout() {
+  authStore.logout()
+  router.push('/')
+}
 </script>
 
 <style scoped>
@@ -25,8 +58,7 @@ const route = useRoute() //храним в переменной route парам
   padding: 48px;
 }
 
-.back-link,
-.link {
+.back-link {
   display: inline-block;
   margin-bottom: 20px;
   color: #2563eb;
@@ -40,7 +72,18 @@ h1 {
 }
 
 p {
-  margin: 0 0 24px;
+  margin: 0 0 16px;
   color: #4b5563;
+}
+
+button {
+  margin-top: 20px;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  background-color: #111827;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
 }
 </style>
