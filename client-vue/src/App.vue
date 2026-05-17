@@ -1,6 +1,5 @@
 
 <template>
-  <h1>You did it!</h1>
   <div class="app">
     <!-- Router вствляет текущую страницу в зависимости от URL -->
     <router-view />
