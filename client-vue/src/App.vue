@@ -1,4 +1,3 @@
-
 <template>
   <div class="app">
     <!-- Router вствляет текущую страницу в зависимости от URL -->
@@ -6,7 +5,7 @@
   </div>
 </template>
 
-<script setup></script>
+<script setup lang="ts"></script>
 
 <style scoped>
 .app {
@@ -15,4 +14,5 @@
   background-color: #f5f6fa;
   color: #111827;
 }
-</style>// scoped- стили действ. только на этот компонент
+</style>
+// scoped- стили действ. только на этот компонент

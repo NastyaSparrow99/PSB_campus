@@ -1,109 +1,105 @@
 <template>
-  <section class="page">
-    <div class="card">
-      <h1>PSB Campus</h1>
+  <section class="login-view">
+    <h1 class="login-view__title">PSB Campus</h1>
 
+    <div class="login-view__actions">
+      <button type="button" class="login-view__button" @click="loginAsStudent">
+        Войти как студент
+      </button>
 
-
-      <div class="actions">
-        <button type="button" @click="loginAsStudent">
-          Войти как студент
-        </button>
-
-        <button type="button" @click="loginAsTeacher">
-          Войти как преподаватель
-        </button>
-      </div>
-
-      <p v-if="authStore.currentUser" class="current-user">
-        Текущий пользователь:
-        <b>{{ authStore.currentUser.name }}</b>
-        —
-        {{ authStore.currentUser.role }}
-      </p>
+      <button type="button" class="login-view__button" @click="loginAsTeacher">
+        Войти как преподаватель
+      </button>
     </div>
+
+    <p v-if="authStore.currentUser" class="login-view__current-user">
+      Текущий пользователь:
+      <span class="login-view__user-value">
+        {{ authStore.currentUser.name }}
+      </span>
+      —
+      <span class="login-view__user-value">
+        {{ authStore.currentUser.role }}
+      </span>
+    </p>
   </section>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/authStore'
+
+import { RouteName } from '../constants/route-names'
+import { UserRole } from '../constants/route-names'
+import { useAuthStore } from '../stores/auth-store'
 
 const router = useRouter()
-const authStore = useAuthStore() //подключаем хранилище
+const authStore = useAuthStore()
 
 function loginAsStudent() {
-  authStore.login({ // функция  присваивания currentUser
+  authStore.login({
     id: 1,
-    name: 'Настя',
-    role: 'student',
+    name: 'Демо студент',
+    role: UserRole.Student,
   })
 
-  router.push('/student') // как navigate('/student')
+  router.push({
+    name: RouteName.StudentDashboard,
+  })
 }
 
 function loginAsTeacher() {
   authStore.login({
     id: 2,
-    name: 'Алексей Иванович',
-    role: 'teacher',
+    name: 'Демо преподаватель',
+    role: UserRole.Teacher,
   })
 
-  router.push('/teacher')
+  router.push({
+    name: RouteName.TeacherDashboard,
+  })
 }
 </script>
 
 <style scoped>
-.page {
+.login-view {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 48px;
 }
 
-.card {
-  width: 100%;
-  max-width: 480px;
-  padding: 32px;
-  border-radius: 10px;
-  background-color: white;
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
-}
-
-h1 {
+.login-view__title {
   margin: 0 0 12px;
-  font-size: 40px;
+  font-size: 36px;
 }
 
-p {
-  margin: 0 0 24px;
+.login-view__text {
+  margin: 0 0 16px;
   color: #4b5563;
 }
 
-.actions {
+.login-view__actions {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-top: 24px;
 }
 
-button {
+.login-view__button {
   border: none;
-  border-radius: 12px;
-  padding: 12px 18px;
-  background-color: #2563eb;
+  border-radius: 10px;
+  padding: 10px 16px;
+  background-color: #111827;
   color: white;
   font-weight: 700;
   cursor: pointer;
 }
 
-button:hover {
-  background-color: #1d4ed8;
+.login-view__current-user {
+  margin-top: 24px;
+  color: #4b5563;
 }
 
-.current-user {
-  margin-top: 24px;
-  margin-bottom: 0;
+.login-view__user-value {
+  font-weight: 700;
   color: #111827;
 }
 </style>
