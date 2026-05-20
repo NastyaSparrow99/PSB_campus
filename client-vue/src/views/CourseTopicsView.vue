@@ -1,8 +1,8 @@
 <template>
   <section class="course-topics">
-    <RouterLink :to="backRoute" class="course-topics__back-link">
+    <router-link :to="backRoute" class="course-topics__back-link">
       ← Вернуться в кабинет
-    </RouterLink>
+    </router-link>
 
     <h1 class="course-topics__title">Темы курса</h1>
 
@@ -27,7 +27,7 @@
     <h2 class="course-topics__subtitle">Темы</h2>
 
     <div class="course-topics__list">
-      <RouterLink
+      <router-link
         v-for="topic in demoTopics"
         :key="topic.id"
         :to="{
@@ -46,7 +46,7 @@
         <p class="course-topics__topic-description">
           {{ topic.description }}
         </p>
-      </RouterLink>
+      </router-link>
     </div>
 
     <div class="course-topics__actions">
@@ -62,7 +62,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { RouteName } from '../constants/route-names'
 import { useAuthStore } from '../stores/auth-store'
 
-interface DemoTopic {
+interface Topic {
   id: number
   title: string
   description: string
@@ -72,7 +72,7 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
-const demoTopics = ref<DemoTopic[]>([
+const demoTopics = ref<Topic[]>([
   {
     id: 1,
     title: 'Тема 1. Введение',
@@ -85,17 +85,11 @@ const demoTopics = ref<DemoTopic[]>([
   },
 ])
 
-const backRoute = computed(() => {
-  if (authStore.currentUser?.role === 'teacher') {
-    return {
-      name: RouteName.TeacherDashboard,
-    }
-  }
-
-  return {
-    name: RouteName.StudentDashboard,
-  }
-})
+const backRoute = computed(() => ({
+  name: authStore.currentUser?.role === 'teacher'
+    ? RouteName.TeacherDashboard
+    : RouteName.StudentDashboard,
+}))
 
 function handleLogout() {
   authStore.logout()

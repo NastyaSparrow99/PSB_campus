@@ -1,12 +1,7 @@
-import { UserRole } from '@/constants/route-names'
+import { User } from '@/constants/route-names'
 //import axios from 'axios'
 const API_BASE_URL = 'http://localhost:8000'
 
-export interface User {
-  id: number
-  name: string
-  role: UserRole
-}
 
 export interface Course {
   id: number
@@ -30,7 +25,7 @@ export async function fetchPersons() {
     throw new Error('Не удалось загрузить пользователей')
   }
 
-  const persons: User[] = await response.json()
+  const persons: User[] = await response.json() //превращает JSON в обычный массив, с которым Vue уже может работать
 
   return persons
 }

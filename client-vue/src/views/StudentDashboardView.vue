@@ -16,7 +16,7 @@
     <h2 class="student-dashboard__subtitle">Мои курсы</h2>
 
     <div class="student-dashboard__courses">
-      <RouterLink
+      <router-link
         v-for="course in Courses"
         :key="course.id"
         :to="{
@@ -32,7 +32,7 @@
         <p class="student-dashboard__course-description">
           {{ course.description }}
         </p>
-      </RouterLink>
+      </router-link>
     </div>
 
     <div class="student-dashboard__actions">

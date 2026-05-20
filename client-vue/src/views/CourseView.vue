@@ -1,6 +1,6 @@
 <template>
   <section class="course-view">
-    <RouterLink
+    <router-link
       :to="{
         name: RouteName.CourseTopics,
         params: { courseId: route.params.courseId }, //в прараметр кладем новый маршрут
@@ -8,7 +8,7 @@
       class="course-view__back-link"
     >
       ← К списку тем
-    </RouterLink>
+    </router-link>
 
     <h1 class="course-view__title">Материалы темы</h1>
 

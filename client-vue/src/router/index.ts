@@ -1,10 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import LoginView from '../views/LoginView.vue'
-import StudentDashboardView from '../views/StudentDashboardView.vue'
-import TeacherDashboardView from '../views/TeacherDashboardView.vue'
-import CourseTopicsView from '../views/CourseTopicsView.vue'
-import CourseView from '../views/CourseView.vue'
+
 
 import { RouteName } from '../constants/route-names'
 import { useAuthStore } from '../stores/auth-store'
@@ -15,21 +11,21 @@ const router = createRouter({
     {
       path: '/',
       name: RouteName.Login,
-      component: LoginView,
+      component: () => import('../views/LoginView.vue'),
     },
     {
       path: '/student',
       name: RouteName.StudentDashboard,
-      component: StudentDashboardView,
+      component: () => import('../views/StudentDashboardView.vue'),
       meta: {
-        requiresAuth: true, // флаг - пстраница требует авторизации
+        requiresAuth: true,
         role: 'student',
       },
     },
     {
       path: '/teacher',
       name: RouteName.TeacherDashboard,
-      component: TeacherDashboardView,
+      component: () => import('../views/TeacherDashboardView.vue'),
       meta: {
         requiresAuth: true,
         role: 'teacher',
@@ -38,7 +34,7 @@ const router = createRouter({
     {
       path: '/course/:courseId/topics',
       name: RouteName.CourseTopics,
-      component: CourseTopicsView,
+      component: () => import('../views/CourseTopicsView.vue'),
       meta: {
         requiresAuth: true,
       },
@@ -46,7 +42,7 @@ const router = createRouter({
     {
       path: '/course/:courseId/topic/:topicId',
       name: RouteName.CourseTopic,
-      component: CourseView,
+      component: () => import('../views/CourseView.vue'),
       meta: {
         requiresAuth: true,
       },
@@ -54,7 +50,7 @@ const router = createRouter({
     {
       path: '/course/:courseId',
       name: RouteName.Course,
-      component: CourseView,
+      component: () => import('../views/CourseView.vue'),
       meta: {
         requiresAuth: true,
       },
