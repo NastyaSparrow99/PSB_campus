@@ -1,0 +1,13 @@
+# Python generated files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+server/venv/
+
+# Django
+*.sqlite3
+media/
