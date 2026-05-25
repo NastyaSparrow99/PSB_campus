@@ -19,7 +19,7 @@
           </option>
         </select>
       </label>
-      <button type="button" class="login-view__button" @click="handleLogin">Войти</button>
+      <button type="button" class="login-view__button" :disabled="!selectedUser" @click="handleLogin">Войти</button>
     </div>
   </section>
 </template>
@@ -35,7 +35,7 @@ import { UserRole, type User } from '../types/user'
 const router = useRouter()
 const authStore = useAuthStore()
 const persons = ref<User[]>([]) //массив пользователей с сервера
-const selectedUser = ref<User | null>(null) //selectedUserId -id выбранного пользователя
+const selectedUser = ref<User | null>(null) //selectedUserId -id какого выбрали пользователя
 const errorMessage = ref('')
 
 async function loadPersons() {
@@ -62,9 +62,7 @@ function handleLogin() {
     name: RouteName.TeacherDashboard,
   })
 }
-onMounted(() => {
-  loadPersons()
-})
+onMounted(loadPersons)
 </script>
 
 <style scoped>
