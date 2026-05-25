@@ -1,7 +1,6 @@
-import { User } from '@/constants/route-names'
-//import axios from 'axios'
+import type { User } from '../types/user'
+import axios from 'axios'
 const API_BASE_URL = 'http://localhost:8000'
-
 
 export interface Course {
   id: number
@@ -17,15 +16,19 @@ export interface Topic {
   course: number
 }
 
-// Получить список пользователей
+// Получить массив пользователей
 export async function fetchPersons() {
-  const response = await fetch(`${API_BASE_URL}/api/persons/`)
+  const response = await axios.get<User[]>(`${API_BASE_URL}/app/persons/`)
 
+  return response.data
+}
+
+export async function fetchCoursesByPerson() {
+  const response = await fetch(`${API_BASE_URL}/app/persons/`) // узнать url с бэка
   if (!response.ok) {
-    throw new Error('Не удалось загрузить пользователей')
+    throw new Error('Не удалось загрузить курсы пользователя')
   }
+  const courses: Course[] = await response.json()
 
-  const persons: User[] = await response.json() //превращает JSON в обычный массив, с которым Vue уже может работать
-
-  return persons
+  return courses
 }

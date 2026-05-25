@@ -37,3 +37,17 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+server/venv/
+
+# Django
+*.sqlite3
+media/

@@ -1,63 +1,68 @@
 <template>
   <section class="login-view">
-    <h1 class="login-view__title">PSB Campus</h1>
-
-    <div class="login-view__actions">
-      <button type="button" class="login-view__button" @click="loginAsStudent">
-        Войти как студент
-      </button>
-
-      <button type="button" class="login-view__button" @click="loginAsTeacher">
-        Войти как преподаватель
-      </button>
+    <div class="login-view__card">
+      <h1 class="login-view__title">Вход в PSB Campus</h1>
+      <p class="login-view__subtitle">Выберите пользователя, чтобы войти в систему</p>
+      <p v-if="errorMessage" class="login-view__error">
+        {{ errorMessage }}
+      </p>
+      <label class="login-view__field">
+        <span class="login-view__label"> Пользователь </span>
+        <select v-model="selectedUser" class="login-view__select">
+          <!-- v-model позволяет  связать переменную в компоненте и значение в поле ввода так, чтобы любые изменения в одном сразу отражались в другом  -->
+          <option :value="null">
+            <!--: говорят о значении  -->
+            выберите пользователя
+          </option>
+          <option v-for="person in persons" :key="person.id" :value="person">
+            {{ person.name }} — {{ person.role }}
+          </option>
+        </select>
+      </label>
+      <button type="button" class="login-view__button" :disabled="!selectedUser" @click="handleLogin">Войти</button>
     </div>
-
-    <p v-if="authStore.currentUser" class="login-view__current-user">
-      Текущий пользователь:
-      <span class="login-view__user-value">
-        {{ authStore.currentUser.name }}
-      </span>
-      —
-      <span class="login-view__user-value">
-        {{ authStore.currentUser.role }}
-      </span>
-    </p>
   </section>
 </template>
 
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { RouteName } from '../constants/route-names'
-import { UserRole } from '../constants/route-names'
+import { fetchPersons } from '../services/api'
 import { useAuthStore } from '../stores/auth-store'
-
+import { UserRole, type User } from '../types/user'
 const router = useRouter()
 const authStore = useAuthStore()
+const persons = ref<User[]>([]) //массив пользователей с сервера
+const selectedUser = ref<User | null>(null) //selectedUserId -id какого выбрали пользователя
+const errorMessage = ref('')
 
-function loginAsStudent() {
-  authStore.login({
-    id: 1,
-    name: 'Демо студент',
-    role: UserRole.Student,
-  })
+async function loadPersons() {
+  try {
+    errorMessage.value = '' // очищаем ошибку
 
-  router.push({
-    name: RouteName.StudentDashboard,
-  })
+    persons.value = await fetchPersons() //загружаем польз.
+  } catch {
+    errorMessage.value = 'Не удалось загрузить пользователей'
+  }
 }
-
-function loginAsTeacher() {
-  authStore.login({
-    id: 2,
-    name: 'Демо преподаватель',
-    role: UserRole.Teacher,
-  })
-
+function handleLogin() {
+  if (!selectedUser.value) {
+    return
+  }
+  authStore.login(selectedUser.value) // в currentUser
+  if (selectedUser.value.role === UserRole.Student) {
+    router.push({
+      name: RouteName.StudentDashboard,
+    })
+    return
+  }
   router.push({
     name: RouteName.TeacherDashboard,
   })
 }
+onMounted(loadPersons)
 </script>
 
 <style scoped>

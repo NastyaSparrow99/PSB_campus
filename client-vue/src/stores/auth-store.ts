@@ -3,18 +3,15 @@
 
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import {  User } from '@/constants/route-names'
-
-
-
-//экспорнитуем функцию которая будет возвращать содержимое
+import type { User } from '../types/user'
+//экспортиуем функцию которая будет возвращать содержимое
 //хранилища auth которое содержит инф о том кто залогинен
 export const useAuthStore = defineStore('auth', () => {
   const currentUser = ref<User | null>(null)
   // переменная храниет состояние текущего пользователя
   // currentUser может быть либо User, либо null
 
- const isAuth = computed(() => !!currentUser.value)//состояние
+  const isAuth = computed(() => !!currentUser.value) //состояние
   //computed - это вычисляемая функция , которая кэшируется и выполняется 1 раз
   // если currentUser.value =true то польз авторизован
 
