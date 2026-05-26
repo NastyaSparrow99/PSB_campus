@@ -1,38 +1,61 @@
 <template>
   <section class="teacher-dashboard">
-    <h1 class="teacher-dashboard__title">Кабинет преподавателя</h1>
+    <h1 class="teacher-dashboard__title">Кабинет преподавателя:</h1>
 
     <p class="teacher-dashboard__user">
       Текущий пользователь:
       <span class="teacher-dashboard__user-value">
         {{ authStore.currentUser?.name }}
       </span>
-      —
-      <span class="teacher-dashboard__user-value">
-        {{ authStore.currentUser?.role }}
-      </span>
     </p>
 
-    <h2 class="teacher-dashboard__subtitle">Мои курсы</h2>
+    <h2 class="teacher-dashboard__subtitle">Созданные курсы</h2>
+    <div class="teacher-dashboard__form">
+      <button type="button" class="teacher-dashboard__button-form" @click="handleOpenForm">
+        Создать курс
+      </button>
+
+      <form v-if="isCreateFormVisible" @submit.prevent="handleSubmit">
+        <input v-model="title" type="text" />
+        <input v-model="description" type="text" />
+
+        <button type="submit">Создать</button>
+      </form>
+    </div>
 
     <div class="teacher-dashboard__courses">
-      <router-link
-        v-for="course in demoCourses"
-        :key="course.id"
-        :to="{
-          name: RouteName.CourseTopics,
-          params: { courseId: course.id },
-        }"
-        class="teacher-dashboard__course-card"
-      >
-        <h3 class="teacher-dashboard__course-title">
-          {{ course.title }}
-        </h3>
+      <p v-if="errorMessage" class="load-courses__error">
+        {{ errorMessage }}
+      </p>
+      <div v-for="course in courses" :key="course.id" class="teacher-dashboard__course-card">
+        <div class="teacher-dashboard__course-header">
+          <h3 class="teacher-dashboard__course-title">
+            {{ course.title }}
+          </h3>
+
+          <button
+            type="button"
+            class="teacher-dashboard__course-delete"
+            @click="handleDeleteCourse(course.id)"
+          >
+            Удалить
+          </button>
+        </div>
 
         <p class="teacher-dashboard__course-description">
           {{ course.description }}
         </p>
-      </router-link>
+
+        <router-link
+          :to="{
+            name: RouteName.CourseTopics,
+            params: { courseId: course.id },
+          }"
+          class="teacher-dashboard__course-link"
+        >
+          Открыть курс
+        </router-link>
+      </div>
     </div>
 
     <div class="teacher-dashboard__actions">
@@ -42,33 +65,65 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-
-import { RouteName } from '../constants/route-names'
-import { useAuthStore } from '../stores/auth-store'
-
-interface DemoCourse {
-  id: number
-  title: string
-  description: string
-}
-
+import { Course } from '@/services/api'
+import { RouteName } from '@/constants/route-names'
+import { useAuthStore } from '@/stores/auth-store'
+import { fetchCoursesByPerson, fetchCreateCourse, fetchDeleteCourse } from '@/services/api'
 const router = useRouter()
 const authStore = useAuthStore()
+const courses = ref<Course[]>([])
+const errorMessage = ref('')
+const errorMessageCreate = ref('')
+const title = ref('') //записываем текст из input
+const description = ref('')
+const isCreateFormVisible = ref(false)
 
-const demoCourses = ref<DemoCourse[]>([
-  {
-    id: 1,
-    title: 'Механика',
-    description: 'Курс с темами, материалами и заданиями',
-  },
-  {
-    id: 2,
-    title: 'Программирование',
-    description: 'Курс для студентов по основам разработки',
-  },
-])
+async function loadCoursesByPerson() {
+  if (!authStore.currentUser) {
+    return
+  }
+  try {
+    errorMessage.value = '' // очищаем ошибку
+
+    courses.value = await fetchCoursesByPerson(authStore.currentUser.id) //загружаем польз.
+  } catch {
+    errorMessage.value = 'Не удалось загрузить курсы'
+  }
+}
+function handleOpenForm() {
+  isCreateFormVisible.value = true
+}
+async function handleSubmit() {
+  if (title.value == '') {
+    errorMessageCreate.value = 'Нет названия у курса'
+    return
+  }
+  if (!authStore.currentUser) {
+    return
+  }
+  try {
+    await fetchCreateCourse({
+      title: title.value,
+      description: description.value,
+      teacher: authStore.currentUser.id,
+    })
+  } catch {
+    errorMessageCreate.value = 'Не удалось создать курс'
+  }
+  await loadCoursesByPerson() //обновляем курсы
+}
+async function handleDeleteCourse(courseId: number) {
+  try {
+    await fetchDeleteCourse(courseId)
+
+    await loadCoursesByPerson()
+  } catch {
+    errorMessage.value = 'Не удалось удалить курс'
+  }
+  await loadCoursesByPerson()
+}
 
 function handleLogout() {
   authStore.logout()
@@ -77,6 +132,7 @@ function handleLogout() {
     name: RouteName.Login,
   })
 }
+onMounted(loadCoursesByPerson)
 </script>
 
 <style scoped>
@@ -129,7 +185,14 @@ function handleLogout() {
   margin: 0 0 8px;
   font-size: 20px;
 }
-
+.teacher-dashboard__course-delete {
+  border: none;
+  background: none;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
 .teacher-dashboard__course-description {
   margin: 0;
   color: #4b5563;

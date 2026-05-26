@@ -7,17 +7,15 @@
       <span class="student-dashboard__user-value">
         {{ authStore.currentUser?.name }}
       </span>
-      —
-      <span class="student-dashboard__user-value">
-        {{ authStore.currentUser?.role }}
-      </span>
     </p>
-
     <h2 class="student-dashboard__subtitle">Мои курсы</h2>
 
     <div class="student-dashboard__courses">
+      <p v-if="errorMessage" class="load-courses__error">
+        {{ errorMessage }}
+      </p>
       <router-link
-        v-for="course in Courses"
+        v-for="course in courses"
         :key="course.id"
         :to="{
           name: RouteName.CourseTopics,
@@ -42,33 +40,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { fetchCoursesByPerson } from '@/services/api'
+import { Course } from '@/services/api'
+import { RouteName } from '@/constants/route-names'
+import { useAuthStore } from '@/stores/auth-store'
 
-import { RouteName } from '../constants/route-names'
-import { useAuthStore } from '../stores/auth-store'
-
-interface Course {
-  id: number
-  title: string
-  description: string
-}
-
+const courses = ref<Course[]>([])
+const errorMessage = ref('')
 const router = useRouter()
 const authStore = useAuthStore()
 
-const Courses = ref<Course[]>([
-  {
-    id: 1,
-    title: 'Механика',
-    description: 'Курс с материалами и домашними заданиями',
-  },
-  {
-    id: 2,
-    title: 'Программирование',
-    description: 'Базовый курс по разработке',
-  },
-])
+async function loadCoursesByPerson() {
+  if (!authStore.currentUser) {
+    return
+  }
+  try {
+    errorMessage.value = '' // очищаем ошибку
+
+    courses.value = await fetchCoursesByPerson(authStore.currentUser.id) //загружаем польз.
+  } catch {
+    errorMessage.value = 'Не удалось загрузить курсы'
+  }
+}
 
 function handleLogout() {
   authStore.logout()
@@ -78,6 +73,7 @@ function handleLogout() {
     name: RouteName.Login,
   })
 }
+onMounted(loadCoursesByPerson)
 </script>
 
 <style scoped>
@@ -94,7 +90,6 @@ function handleLogout() {
   margin: 32px 0 16px;
   font-size: 24px;
 }
-
 .student-dashboard__user {
   margin: 0 0 16px;
   color: #4b5563;

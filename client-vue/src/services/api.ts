@@ -15,20 +15,30 @@ export interface Topic {
   description: string
   course: number
 }
+export interface CreateCourseData {
+  title: string
+  description: string
+  teacher: number
+}
 
 // Получить массив пользователей
 export async function fetchPersons() {
   const response = await axios.get<User[]>(`${API_BASE_URL}/app/persons/`)
-
+  return response.data
+}
+export async function fetchCoursesByPerson(personId: number) {
+  //запрос курсов под конкретного пользователя ,поэтому параметр id
+  const response = await axios.get<Course[]>(
+    `${API_BASE_URL}/app/courses/by_person/?person_id=${personId}`,
+  )
   return response.data
 }
 
-export async function fetchCoursesByPerson() {
-  const response = await fetch(`${API_BASE_URL}/app/persons/`) // узнать url с бэка
-  if (!response.ok) {
-    throw new Error('Не удалось загрузить курсы пользователя')
-  }
-  const courses: Course[] = await response.json()
+export async function fetchCreateCourse(data: CreateCourseData) {
+  const response = await axios.post(`${API_BASE_URL}/app/courses/`, data)
+  return response.data
+}
 
-  return courses
+export async function fetchDeleteCourse(courseId: number) {
+  await axios.delete(`${API_BASE_URL}/app/courses/${courseId}/`)
 }
