@@ -25,10 +25,58 @@
     </p>
 
     <h2 class="course-topics__subtitle">Темы</h2>
+    <p v-if="errorMessage" class="course-topics__error">
+  {{ errorMessage }}
+</p>
+<div
+  v-if="authStore.currentUser?.role === 'teacher'"
+  class="course-topics__create"
+>
+  <button
+    type="button"
+    class="course-topics__button"
+    @click="handleOpenCreateTopicForm"
+  >
+    Создать тему
+  </button>
 
+  <form
+    v-if="isCreateTopicFormVisible"
+    class="course-topics__form"
+    @submit.prevent="handleCreateTopic"
+  >
+    <input
+      v-model="titleOfTopic"
+      class="course-topics__input"
+      type="text"
+      placeholder="Название темы"
+    >
+
+    <input
+      v-model="description"
+      class="course-topics__input"
+      type="text"
+      placeholder="Описание темы"
+    >
+
+    <p
+      v-if="errorMessageCreate"
+      class="course-topics__error"
+    >
+      {{ errorMessageCreate }}
+    </p>
+
+    <button
+      type="submit"
+      class="course-topics__button"
+    >
+      Добавить
+    </button>
+  </form>
+</div>
     <div class="course-topics__list">
       <router-link
-        v-for="topic in demoTopics"
+        v-for="topic in topics"
         :key="topic.id"
         :to="{
           name: RouteName.CourseTopic,
@@ -56,40 +104,74 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
 import { RouteName } from '../constants/route-names'
 import { useAuthStore } from '../stores/auth-store'
-
-interface Topic {
-  id: number
-  title: string
-  description: string
-}
-
+import { fetchTopicsByCourse , fetchCreateTopic } from '@/services/api'
+import { Topic } from '@/services/api'
+const topics = ref<Topic[]>([])
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
-
-const demoTopics = ref<Topic[]>([
-  {
-    id: 1,
-    title: 'Тема 1. Введение',
-    description: 'Краткое знакомство с материалами курса',
-  },
-  {
-    id: 2,
-    title: 'Тема 2. Практика',
-    description: 'Практические задания и дополнительные материалы',
-  },
-])
-
+const errorMessage= ref('')
+const titleOfTopic = ref('')
+const description = ref('')
+const isCreateTopicFormVisible = ref(false)
+const errorMessageCreate = ref('')
 const backRoute = computed(() => ({
   name: authStore.currentUser?.role === 'teacher'
     ? RouteName.TeacherDashboard
     : RouteName.StudentDashboard,
 }))
+
+async function loadTopicsByCourse() { //courseId: number
+  const courseId = Number(route.params.courseId) // route.params приходит из URL строкой
+ if (!authStore.currentUser) {
+    return
+  }
+  try {
+    errorMessage.value = '' // очищаем ошибку
+
+    topics.value = await fetchTopicsByCourse(courseId)
+  } catch {
+    errorMessage.value = 'Не удалось загрузить темы'
+  }
+}
+
+function handleOpenCreateTopicForm() {
+  isCreateTopicFormVisible.value = true
+}
+
+async function handleCreateTopic() {
+  const courseId = Number(route.params.courseId)
+   if (titleOfTopic.value == '') {
+    errorMessageCreate.value = 'Нет названия у темы'
+    return
+  }
+   if (!courseId) {
+    errorMessageCreate.value = 'Не найден ID курса'
+    return
+  }
+
+ try {
+    errorMessageCreate.value = ''
+    topics.value = await fetchTopicsByCourse(courseId)
+    await fetchCreateTopic({
+      title: titleOfTopic.value,
+      description: description.value,
+      course: courseId,
+    })
+
+    titleOfTopic.value = ''
+    description.value = ''
+    await loadTopicsByCourse()
+  } catch {
+    errorMessageCreate.value = 'Не удалось создать тему'
+  }
+}
+
+
 
 function handleLogout() {
   authStore.logout()
@@ -98,6 +180,7 @@ function handleLogout() {
     name: RouteName.Login,
   })
 }
+onMounted(loadTopicsByCourse)
 </script>
 
 <style scoped>
@@ -127,7 +210,30 @@ function handleLogout() {
   margin: 0 0 16px;
   color: #4b5563;
 }
+.course-topics__create {
+  margin-bottom: 24px;
+}
 
+.course-topics__form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.course-topics__input {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 16px;
+}
+
+.course-topics__error {
+  width: 100%;
+  margin: 0;
+  color: #dc2626;
+  font-weight: 700;
+}
 .course-topics__value {
   color: #111827;
   font-weight: 700;

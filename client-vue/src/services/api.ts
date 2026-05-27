@@ -21,6 +21,13 @@ export interface CreateCourseData {
   teacher: number
 }
 
+export interface CreateTopicsData {
+  title: string
+  description: string
+  course: number
+}
+
+
 // Получить массив пользователей
 export async function fetchPersons() {
   const response = await axios.get<User[]>(`${API_BASE_URL}/app/persons/`)
@@ -42,3 +49,18 @@ export async function fetchCreateCourse(data: CreateCourseData) {
 export async function fetchDeleteCourse(courseId: number) {
   await axios.delete(`${API_BASE_URL}/app/courses/${courseId}/`)
 }
+export async function fetchTopicsByCourse(courseId: number) { //возвращает Topic[]
+  const response = await axios.get<Topic[]>(`${API_BASE_URL}/app/topics/by_course/?course_id=${courseId}`)
+  return response.data
+}
+
+export async function fetchCreateTopic(data: CreateTopicsData) {
+  const response = await axios.post(`${API_BASE_URL}/app/topics/`, data)
+  return response.data
+}
+
+export async function fetchTopicById(topicId: number) {
+  const response = await axios.get<Topic>( `${API_BASE_URL}/app/topics/${topicId}/`)
+  return response.data
+}
+

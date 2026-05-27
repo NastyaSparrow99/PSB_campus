@@ -36,13 +36,14 @@
         {{ authStore.currentUser?.role }}
       </span>
     </p>
-
+<p v-if="errorMessage" class="course-view__error">
+  {{ errorMessage }}
+</p>
     <div class="course-view__material-card">
-      <h2 class="course-view__material-title">Лекция по теме</h2>
+      <h2 class="course-view__material-title">Лекция по теме: {{ topicById?.title }}</h2>
 
       <p class="course-view__material-text">
-        Здесь позже будут настоящие материалы, задания, чат и комментарии. Пока это простая заглушка
-        страницы темы.
+  {{ topicById?.description }}
       </p>
     </div>
 
@@ -55,12 +56,27 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
 
-import { RouteName } from '../constants/route-names'
-import { useAuthStore } from '../stores/auth-store'
+import { RouteName } from '@/constants/route-names'
+import { useAuthStore } from '@/stores/auth-store'
+import { onMounted, ref } from 'vue'
+import { fetchTopicById, Topic } from '@/services/api'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const topicById =ref<Topic | null>(null)
+const errorMessage = ref('')
+
+async function loadTopicById() { 
+  const topicId = Number(route.params.topicId) // // route.params приходит из URL строкой
+  try {
+    errorMessage.value = '' // очищаем ошибку
+
+    topicById.value = await fetchTopicById(topicId)
+  } catch {
+    errorMessage.value = 'Не удалось загрузить тему'
+  }
+}
 
 function handleLogout() {
   authStore.logout()
@@ -69,6 +85,7 @@ function handleLogout() {
     name: RouteName.Login,
   })
 }
+onMounted(loadTopicById)
 </script>
 
 <style scoped>

@@ -18,7 +18,6 @@
       <form v-if="isCreateFormVisible" @submit.prevent="handleSubmit">
         <input v-model="title" type="text" />
         <input v-model="description" type="text" />
-
         <button type="submit">Создать</button>
       </form>
     </div>
@@ -78,7 +77,9 @@ const errorMessage = ref('')
 const errorMessageCreate = ref('')
 const title = ref('') //записываем текст из input
 const description = ref('')
+
 const isCreateFormVisible = ref(false)
+
 
 async function loadCoursesByPerson() {
   if (!authStore.currentUser) {
@@ -109,6 +110,7 @@ async function handleSubmit() {
       description: description.value,
       teacher: authStore.currentUser.id,
     })
+
   } catch {
     errorMessageCreate.value = 'Не удалось создать курс'
   }
