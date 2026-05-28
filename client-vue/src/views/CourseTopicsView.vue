@@ -26,54 +26,42 @@
 
     <h2 class="course-topics__subtitle">Темы</h2>
     <p v-if="errorMessage" class="course-topics__error">
-  {{ errorMessage }}
-</p>
-<div
-  v-if="authStore.currentUser?.role === 'teacher'"
-  class="course-topics__create"
->
-  <button
-    type="button"
-    class="course-topics__button"
-    @click="handleOpenCreateTopicForm"
-  >
-    Создать тему
-  </button>
-
-  <form
-    v-if="isCreateTopicFormVisible"
-    class="course-topics__form"
-    @submit.prevent="handleCreateTopic"
-  >
-    <input
-      v-model="titleOfTopic"
-      class="course-topics__input"
-      type="text"
-      placeholder="Название темы"
-    >
-
-    <input
-      v-model="description"
-      class="course-topics__input"
-      type="text"
-      placeholder="Описание темы"
-    >
-
-    <p
-      v-if="errorMessageCreate"
-      class="course-topics__error"
-    >
-      {{ errorMessageCreate }}
+      {{ errorMessage }}
     </p>
+    <div v-if="authStore.currentUser?.role === 'teacher'" class="course-topics__create">
+      <button type="button" class="course-topics__button" @click="isCreateTopicModalOpen = true">
+        Создать тему
+      </button>
+      <!--Переменная isOpen boolean-->
+      <ModalBlock :isOpen="isCreateTopicModalOpen">
+        <button type="button" class="course-topics__button" @click="isCreateTopicModalOpen = false">
+          Закрыть
+        </button>
 
-    <button
-      type="submit"
-      class="course-topics__button"
-    >
-      Добавить
-    </button>
-  </form>
-</div>
+        <form class="course-topics__form" @submit.prevent="handleCreateTopic">
+          <input
+            v-model="titleOfTopic"
+            class="course-topics__input"
+            type="text"
+            placeholder="Название темы"
+          />
+
+          <input
+            v-model="description"
+            class="course-topics__input"
+            type="text"
+            placeholder="Описание темы"
+          />
+
+          <p v-if="errorMessageCreate" class="course-topics__error">
+            {{ errorMessageCreate }}
+          </p>
+
+          <button type="submit" class="course-topics__button">Добавить</button>
+        </form>
+      </ModalBlock>
+    </div>
+
     <div class="course-topics__list">
       <router-link
         v-for="topic in topics"
@@ -104,30 +92,34 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import ModalBlock from '@/components/ModalBlock.vue'
 import { RouteName } from '../constants/route-names'
 import { useAuthStore } from '../stores/auth-store'
-import { fetchTopicsByCourse , fetchCreateTopic } from '@/services/api'
+import { fetchTopicsByCourse, fetchCreateTopic } from '@/services/api'
 import { Topic } from '@/services/api'
 const topics = ref<Topic[]>([])
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
-const errorMessage= ref('')
+const errorMessage = ref('')
 const titleOfTopic = ref('')
 const description = ref('')
-const isCreateTopicFormVisible = ref(false)
+const isCreateTopicModalOpen = ref(false)
 const errorMessageCreate = ref('')
+
 const backRoute = computed(() => ({
-  name: authStore.currentUser?.role === 'teacher'
-    ? RouteName.TeacherDashboard
-    : RouteName.StudentDashboard,
+  name:
+    authStore.currentUser?.role === 'teacher'
+      ? RouteName.TeacherDashboard
+      : RouteName.StudentDashboard,
 }))
 
-async function loadTopicsByCourse() { //courseId: number
+async function loadTopicsByCourse() {
+  //courseId: number
   const courseId = Number(route.params.courseId) // route.params приходит из URL строкой
- if (!authStore.currentUser) {
+  if (!authStore.currentUser) {
     return
   }
   try {
@@ -139,24 +131,19 @@ async function loadTopicsByCourse() { //courseId: number
   }
 }
 
-function handleOpenCreateTopicForm() {
-  isCreateTopicFormVisible.value = true
-}
-
 async function handleCreateTopic() {
   const courseId = Number(route.params.courseId)
-   if (titleOfTopic.value == '') {
+  if (titleOfTopic.value == '') {
     errorMessageCreate.value = 'Нет названия у темы'
     return
   }
-   if (!courseId) {
+  if (!courseId) {
     errorMessageCreate.value = 'Не найден ID курса'
     return
   }
 
- try {
+  try {
     errorMessageCreate.value = ''
-    topics.value = await fetchTopicsByCourse(courseId)
     await fetchCreateTopic({
       title: titleOfTopic.value,
       description: description.value,
@@ -165,13 +152,12 @@ async function handleCreateTopic() {
 
     titleOfTopic.value = ''
     description.value = ''
+    isCreateTopicModalOpen.value = false //закрываем модалку после заполнения формы
     await loadTopicsByCourse()
   } catch {
     errorMessageCreate.value = 'Не удалось создать тему'
   }
 }
-
-
 
 function handleLogout() {
   authStore.logout()
@@ -180,7 +166,7 @@ function handleLogout() {
     name: RouteName.Login,
   })
 }
-onMounted(loadTopicsByCourse)
+loadTopicsByCourse()
 </script>
 
 <style scoped>
@@ -214,6 +200,41 @@ onMounted(loadTopicsByCourse)
   margin-bottom: 24px;
 }
 
+.course-topics__modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.course-topics__modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  padding: 32px;
+  border-radius: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+}
+
+.course-topics__modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: none;
+  background: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.course-topics__modal-title {
+  margin: 0 0 20px;
+  font-size: 24px;
+}
 .course-topics__form {
   display: flex;
   gap: 12px;

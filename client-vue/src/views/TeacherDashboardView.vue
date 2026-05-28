@@ -10,9 +10,12 @@
     </p>
 
     <h2 class="teacher-dashboard__subtitle">Созданные курсы</h2>
-    <div class="teacher-dashboard__form">
-      <button type="button" class="teacher-dashboard__button-form" @click="handleOpenForm">
-        Создать курс
+    <button type="button" class="teacher-dashboard__button-form" @click="handleOpenForm">
+      Создать курс
+    </button>
+    <ModalBlock :is-open="isCreateTopicModalOpen">
+      <button type="button" class="course-topics__button" @click="isCreateTopicModalOpen = false">
+        Закрыть
       </button>
 
       <form v-if="isCreateFormVisible" @submit.prevent="handleSubmit">
@@ -20,7 +23,9 @@
         <input v-model="description" type="text" />
         <button type="submit">Создать</button>
       </form>
-    </div>
+    </ModalBlock>
+
+    <div class="teacher-dashboard__form"></div>
 
     <div class="teacher-dashboard__courses">
       <p v-if="errorMessage" class="load-courses__error">
@@ -64,12 +69,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Course } from '@/services/api'
 import { RouteName } from '@/constants/route-names'
 import { useAuthStore } from '@/stores/auth-store'
 import { fetchCoursesByPerson, fetchCreateCourse, fetchDeleteCourse } from '@/services/api'
+import ModalBlock from '@/components/ModalBlock.vue'
 const router = useRouter()
 const authStore = useAuthStore()
 const courses = ref<Course[]>([])
@@ -77,9 +83,9 @@ const errorMessage = ref('')
 const errorMessageCreate = ref('')
 const title = ref('') //записываем текст из input
 const description = ref('')
+const isCreateTopicModalOpen = ref(false)
 
 const isCreateFormVisible = ref(false)
-
 
 async function loadCoursesByPerson() {
   if (!authStore.currentUser) {
@@ -110,7 +116,6 @@ async function handleSubmit() {
       description: description.value,
       teacher: authStore.currentUser.id,
     })
-
   } catch {
     errorMessageCreate.value = 'Не удалось создать курс'
   }
@@ -134,7 +139,7 @@ function handleLogout() {
     name: RouteName.Login,
   })
 }
-onMounted(loadCoursesByPerson)
+loadCoursesByPerson()
 </script>
 
 <style scoped>
