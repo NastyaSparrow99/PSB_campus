@@ -18,7 +18,7 @@
       <span class="course-topics__value">
         {{ authStore.currentUser?.name }}
       </span>
-      —
+      -
       <span class="course-topics__value">
         {{ authStore.currentUser?.role }}
       </span>
@@ -37,7 +37,6 @@
         <button type="button" class="course-topics__button" @click="isCreateTopicModalOpen = false">
           Закрыть
         </button>
-
         <form class="course-topics__form" @submit.prevent="handleCreateTopic">
           <input
             v-model="titleOfTopic"
@@ -45,14 +44,12 @@
             type="text"
             placeholder="Название темы"
           />
-
           <input
             v-model="description"
             class="course-topics__input"
             type="text"
             placeholder="Описание темы"
           />
-
           <p v-if="errorMessageCreate" class="course-topics__error">
             {{ errorMessageCreate }}
           </p>

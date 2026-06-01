@@ -42,58 +42,15 @@
           {{ materials.length }}
         </span>
       </div>
-      <p v-if="materials.length === 0" class="course-view__empty">Материалов по теме пока нет</p>
+      <p v-if="!materials.length" class="course-view__empty">Материалов по теме пока нет</p>
 
       <div v-else class="course-view__materials-list">
         <button
           v-if="authStore.currentUser?.role === 'teacher'"
           type="button"
           class="course-view__button"
-          @click="isDownloadMaterialModalOpen = true"
+          @click="handleOpenCreateMaterialModal"
         >
-          <ModalBlock :isOpen="isDownloadMaterialModalOpen">
-            <button
-              type="button"
-              class="course-view__button"
-              @click="isDownloadMaterialModalOpen = false"
-            >
-              Закрыть
-            </button>
-
-            <form class="course-view__form" @submit.prevent="handleDownloadMaterial">
-              <input
-                v-model="materialTitle"
-                class="course-view__input"
-                type="text"
-                placeholder="Название материала"
-              />
-
-              <select v-model="materialType" class="course-view__input">
-                <option value="text">Текст</option>
-
-                <option value="url">Ссылка</option>
-              </select>
-
-              <textarea
-                v-model="materialText"
-                class="course-view__input"
-                placeholder="Текст материала"
-              />
-
-              <input
-                v-model="materialUrl"
-                class="course-view__input"
-                type="url"
-                placeholder="Ссылка"
-              />
-
-              <p v-if="errorMessage" class="course-view__error">
-                {{ errorMessage }}
-              </p>
-
-              <button type="submit" class="course-view__button">Создать материал</button>
-            </form>
-          </ModalBlock>
           Добавить материал
         </button>
         <article
@@ -130,34 +87,22 @@
 
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-
+import { openModal } from 'jenesius-vue-modal'
+import CreateMaterialModal from '@/components/CreateMaterialModal.vue'
 import { RouteName } from '@/constants/route-names'
 import { useAuthStore } from '@/stores/auth-store'
 import { ref } from 'vue'
-import {
-  fetchDownloadMaterials,
-  fetchMaterials,
-  fetchTopicById,
-  Material,
-  Topic,
-} from '@/services/api'
+import { fetchMaterials, fetchTopicById, Material, Topic } from '@/services/api'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const topicById = ref<Topic | null>(null)
 const errorMessage = ref('')
-
 const materials = ref<Material[]>([])
-const isDownloadMaterialModalOpen = ref(false)
-const materialTitle = ref('')
-const materialType = ref('text')
-const materialText = ref('')
-const materialUrl = ref('')
-//const selectedFile = ref<Filel>
 
 async function loadTopicById() {
-  const topicId = Number(route.params.topicId) // // route.params приходит из URL строкой
+  const [topicId] = Object.keys(route.params).map((key) => Number(route.params[key]))
   try {
     errorMessage.value = '' // очищаем ошибку
 
@@ -168,7 +113,10 @@ async function loadTopicById() {
 }
 
 async function loadMaterials() {
-  const courseId = Number(route.params.courseId)
+  //const courseId = Number(route.params.courseId)
+  // Из URL достаём courseId, потому что материалы загружаются по курсу
+  // route.params.courseId приходит строкой, поэтому преобразуем значение в число
+  const [courseId] = Object.keys(route.params).map((key) => Number(route.params[key]))
   try {
     errorMessage.value = '' // очищаем ошибку
 
@@ -177,36 +125,15 @@ async function loadMaterials() {
     errorMessage.value = 'Не удалось загрузить материал'
   }
 }
-async function handleDownloadMaterial() {
-  const courseId = Number(route.params.courseId)
-  const topicId = Number(route.params.topicId)
+async function handleOpenCreateMaterialModal() {
+  //const courseId = Number(route.params.courseId)
+  //const topicId = Number(route.params.topicId)
 
-  if (!materialTitle.value) {
-    errorMessage.value = 'Нет названия'
-  }
-  try {
-    errorMessage.value = ''
+  // Object.keys(route.params) берёт все ключи параметров маршрута.
+  // для пути /course/:courseId/topic/:topicId первым будет courseId, вторым topicId
+  const [courseId, topicId] = Object.keys(route.params).map((key) => Number(route.params[key]))
 
-    await fetchDownloadMaterials({
-      title: materialTitle.value,
-      material_type: materialType.value,
-      text: materialText.value,
-      url: materialUrl.value,
-      course: courseId,
-      topic: topicId,
-    })
-
-    materialTitle.value = ''
-    materialType.value = 'text'
-    materialText.value = ''
-    materialUrl.value = ''
-
-    isDownloadMaterialModalOpen.value = false
-
-    await loadMaterials()
-  } catch {
-    errorMessage.value = 'Не удалось создать материал'
-  }
+  await openModal(CreateMaterialModal, { courseId, topicId, onCreated: loadMaterials })
 }
 
 function handleLogout() {

@@ -1,32 +1,23 @@
 <template>
   <section class="teacher-dashboard">
     <h1 class="teacher-dashboard__title">Кабинет преподавателя:</h1>
-
     <p class="teacher-dashboard__user">
       Текущий пользователь:
       <span class="teacher-dashboard__user-value">
         {{ authStore.currentUser?.name }}
       </span>
     </p>
-
     <h2 class="teacher-dashboard__subtitle">Созданные курсы</h2>
-    <button type="button" class="teacher-dashboard__button-form" @click="handleOpenForm">
+
+    <button
+      type="button"
+      class="teacher-dashboard__button-form"
+      @click="handleOpenCreateCourseModal"
+    >
       Создать курс
     </button>
-    <ModalBlock :is-open="isCreateTopicModalOpen">
-      <button type="button" class="course-topics__button" @click="isCreateTopicModalOpen = false">
-        Закрыть
-      </button>
-
-      <form v-if="isCreateFormVisible" @submit.prevent="handleSubmit">
-        <input v-model="title" type="text" />
-        <input v-model="description" type="text" />
-        <button type="submit">Создать</button>
-      </form>
-    </ModalBlock>
 
     <div class="teacher-dashboard__form"></div>
-
     <div class="teacher-dashboard__courses">
       <p v-if="errorMessage" class="load-courses__error">
         {{ errorMessage }}
@@ -36,7 +27,6 @@
           <h3 class="teacher-dashboard__course-title">
             {{ course.title }}
           </h3>
-
           <button
             type="button"
             class="teacher-dashboard__course-delete"
@@ -74,18 +64,13 @@ import { useRouter } from 'vue-router'
 import { Course } from '@/services/api'
 import { RouteName } from '@/constants/route-names'
 import { useAuthStore } from '@/stores/auth-store'
-import { fetchCoursesByPerson, fetchCreateCourse, fetchDeleteCourse } from '@/services/api'
-import ModalBlock from '@/components/ModalBlock.vue'
+import { fetchCoursesByPerson, fetchDeleteCourse } from '@/services/api'
+import { openModal } from 'jenesius-vue-modal'
+import CreateCourseModal from '@/components/CreateCourseModal.vue'
 const router = useRouter()
 const authStore = useAuthStore()
 const courses = ref<Course[]>([])
 const errorMessage = ref('')
-const errorMessageCreate = ref('')
-const title = ref('') //записываем текст из input
-const description = ref('')
-const isCreateTopicModalOpen = ref(false)
-
-const isCreateFormVisible = ref(false)
 
 async function loadCoursesByPerson() {
   if (!authStore.currentUser) {
@@ -99,27 +84,16 @@ async function loadCoursesByPerson() {
     errorMessage.value = 'Не удалось загрузить курсы'
   }
 }
-function handleOpenForm() {
-  isCreateFormVisible.value = true
-}
-async function handleSubmit() {
-  if (title.value == '') {
-    errorMessageCreate.value = 'Нет названия у курса'
-    return
-  }
+async function handleOpenCreateCourseModal() {
   if (!authStore.currentUser) {
     return
   }
-  try {
-    await fetchCreateCourse({
-      title: title.value,
-      description: description.value,
-      teacher: authStore.currentUser.id,
-    })
-  } catch {
-    errorMessageCreate.value = 'Не удалось создать курс'
-  }
-  await loadCoursesByPerson() //обновляем курсы
+
+  await openModal(CreateCourseModal, {
+    // пропсы
+    teacherId: authStore.currentUser.id,
+    onCreated: loadCoursesByPerson,
+  })
 }
 async function handleDeleteCourse(courseId: number) {
   try {
