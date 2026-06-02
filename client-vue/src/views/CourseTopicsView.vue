@@ -28,36 +28,13 @@
     <p v-if="errorMessage" class="course-topics__error">
       {{ errorMessage }}
     </p>
-    <div v-if="authStore.currentUser?.role === 'teacher'" class="course-topics__create">
-      <button type="button" class="course-topics__button" @click="isCreateTopicModalOpen = true">
-        Создать тему
-      </button>
-      <!--Переменная isOpen boolean-->
-      <ModalBlock :isOpen="isCreateTopicModalOpen">
-        <button type="button" class="course-topics__button" @click="isCreateTopicModalOpen = false">
-          Закрыть
-        </button>
-        <form class="course-topics__form" @submit.prevent="handleCreateTopic">
-          <input
-            v-model="titleOfTopic"
-            class="course-topics__input"
-            type="text"
-            placeholder="Название темы"
-          />
-          <input
-            v-model="description"
-            class="course-topics__input"
-            type="text"
-            placeholder="Описание темы"
-          />
-          <p v-if="errorMessageCreate" class="course-topics__error">
-            {{ errorMessageCreate }}
-          </p>
 
-          <button type="submit" class="course-topics__button">Добавить</button>
-        </form>
-      </ModalBlock>
-    </div>
+      <div v-if="authStore.currentUser?.role === 'teacher'" class="course-topics__create">
+        <button type="button" class="course-topics__button" @click="handleOpenCreateTopicModal">
+          Создать тему
+        </button>
+      </div>
+
 
     <div class="course-topics__list">
       <router-link
@@ -91,20 +68,17 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import ModalBlock from '@/components/ModalBlock.vue'
 import { RouteName } from '../constants/route-names'
 import { useAuthStore } from '../stores/auth-store'
-import { fetchTopicsByCourse, fetchCreateTopic } from '@/services/api'
-import { Topic } from '@/services/api'
+import { fetchTopicsByCourse,Topic   } from '@/services/api'
+import { openModal } from 'jenesius-vue-modal'
+import CreateTopicModal from '@/components/CreateTopicModal.vue'
 const topics = ref<Topic[]>([])
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+
 const errorMessage = ref('')
-const titleOfTopic = ref('')
-const description = ref('')
-const isCreateTopicModalOpen = ref(false)
-const errorMessageCreate = ref('')
 
 const backRoute = computed(() => ({
   name:
@@ -112,7 +86,22 @@ const backRoute = computed(() => ({
       ? RouteName.TeacherDashboard
       : RouteName.StudentDashboard,
 }))
+async function handleOpenCreateTopicModal() {
+  const courseId = Number(route.params.courseId)
 
+  if (!courseId) {
+    errorMessage.value = 'Не найден ID курса'
+    return
+  }
+
+  await openModal(CreateTopicModal, {
+    courseId,
+
+    // Когда в CreateTopicModal выполнится emit('created'),
+    // здесь вызовется loadTopicsByCourse и список тем обновится.
+    onCreated: loadTopicsByCourse,
+  })
+}
 async function loadTopicsByCourse() {
   //courseId: number
   const courseId = Number(route.params.courseId) // route.params приходит из URL строкой
@@ -128,33 +117,6 @@ async function loadTopicsByCourse() {
   }
 }
 
-async function handleCreateTopic() {
-  const courseId = Number(route.params.courseId)
-  if (titleOfTopic.value == '') {
-    errorMessageCreate.value = 'Нет названия у темы'
-    return
-  }
-  if (!courseId) {
-    errorMessageCreate.value = 'Не найден ID курса'
-    return
-  }
-
-  try {
-    errorMessageCreate.value = ''
-    await fetchCreateTopic({
-      title: titleOfTopic.value,
-      description: description.value,
-      course: courseId,
-    })
-
-    titleOfTopic.value = ''
-    description.value = ''
-    isCreateTopicModalOpen.value = false //закрываем модалку после заполнения формы
-    await loadTopicsByCourse()
-  } catch {
-    errorMessageCreate.value = 'Не удалось создать тему'
-  }
-}
 
 function handleLogout() {
   authStore.logout()

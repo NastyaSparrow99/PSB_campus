@@ -40,7 +40,11 @@ import { fetchCreateCourse } from '@/services/api'
 
 const props = defineProps<{
   teacherId: number // понимание того какой именно преподаватель создал курс
-  onCreated: () => void // функция
+}>()
+const emit = defineEmits<{
+  // Событие created отправляется после успешного создания материала
+  // Модалка не обновляет список , только сообщает родителю, что материал создан
+  created: []
 }>()
 const title = ref('')
 const description = ref('')
@@ -65,7 +69,7 @@ async function handleCreateCourse() {
       teacher: props.teacherId,
     })
 
-    await props.onCreated() // обновляет список курсов
+    emit('created')// обновляет список курсов
     handleCloseModal()
   } catch {
     errorMessage.value = 'Не удалось создать курс'
