@@ -18,17 +18,27 @@
       <span class="course-topics__value">
         {{ authStore.currentUser?.name }}
       </span>
-      —
+      -
       <span class="course-topics__value">
         {{ authStore.currentUser?.role }}
       </span>
     </p>
 
     <h2 class="course-topics__subtitle">Темы</h2>
+    <p v-if="errorMessage" class="course-topics__error">
+      {{ errorMessage }}
+    </p>
+
+      <div v-if="authStore.currentUser?.role === 'teacher'" class="course-topics__create">
+        <button type="button" class="course-topics__button" @click="handleOpenCreateTopicModal">
+          Создать тему
+        </button>
+      </div>
+
 
     <div class="course-topics__list">
       <router-link
-        v-for="topic in demoTopics"
+        v-for="topic in topics"
         :key="topic.id"
         :to="{
           name: RouteName.CourseTopic,
@@ -58,38 +68,55 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
 import { RouteName } from '../constants/route-names'
 import { useAuthStore } from '../stores/auth-store'
-
-interface Topic {
-  id: number
-  title: string
-  description: string
-}
-
+import { fetchTopicsByCourse,Topic   } from '@/services/api'
+import { openModal } from 'jenesius-vue-modal'
+import CreateTopicModal from '@/components/CreateTopicModal.vue'
+const topics = ref<Topic[]>([])
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
-const demoTopics = ref<Topic[]>([
-  {
-    id: 1,
-    title: 'Тема 1. Введение',
-    description: 'Краткое знакомство с материалами курса',
-  },
-  {
-    id: 2,
-    title: 'Тема 2. Практика',
-    description: 'Практические задания и дополнительные материалы',
-  },
-])
+const errorMessage = ref('')
 
 const backRoute = computed(() => ({
-  name: authStore.currentUser?.role === 'teacher'
-    ? RouteName.TeacherDashboard
-    : RouteName.StudentDashboard,
+  name:
+    authStore.currentUser?.role === 'teacher'
+      ? RouteName.TeacherDashboard
+      : RouteName.StudentDashboard,
 }))
+async function handleOpenCreateTopicModal() {
+  const courseId = Number(route.params.courseId)
+
+  if (!courseId) {
+    errorMessage.value = 'Не найден ID курса'
+    return
+  }
+
+  await openModal(CreateTopicModal, {
+    courseId,
+
+    // Когда в CreateTopicModal выполнится emit('created'),
+    // здесь вызовется loadTopicsByCourse и список тем обновится.
+    onCreated: loadTopicsByCourse,
+  })
+}
+async function loadTopicsByCourse() {
+  //courseId: number
+  const courseId = Number(route.params.courseId) // route.params приходит из URL строкой
+  if (!authStore.currentUser) {
+    return
+  }
+  try {
+    errorMessage.value = '' // очищаем ошибку
+
+    topics.value = await fetchTopicsByCourse(courseId)
+  } catch {
+    errorMessage.value = 'Не удалось загрузить темы'
+  }
+}
+
 
 function handleLogout() {
   authStore.logout()
@@ -98,6 +125,7 @@ function handleLogout() {
     name: RouteName.Login,
   })
 }
+loadTopicsByCourse()
 </script>
 
 <style scoped>
@@ -127,7 +155,65 @@ function handleLogout() {
   margin: 0 0 16px;
   color: #4b5563;
 }
+.course-topics__create {
+  margin-bottom: 24px;
+}
 
+.course-topics__modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.course-topics__modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  padding: 32px;
+  border-radius: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+}
+
+.course-topics__modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: none;
+  background: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.course-topics__modal-title {
+  margin: 0 0 20px;
+  font-size: 24px;
+}
+.course-topics__form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.course-topics__input {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 16px;
+}
+
+.course-topics__error {
+  width: 100%;
+  margin: 0;
+  color: #dc2626;
+  font-weight: 700;
+}
 .course-topics__value {
   color: #111827;
   font-weight: 700;
