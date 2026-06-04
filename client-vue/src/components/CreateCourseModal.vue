@@ -23,7 +23,7 @@
         <button
           type="button"
           class="create-course-modal__button create-course-modal__button--secondary"
-          @click="handleCloseModal"
+          @click="closeModal()"
         >
           Закрыть
         </button>
@@ -42,17 +42,12 @@ const props = defineProps<{
   teacherId: number // понимание того какой именно преподаватель создал курс
 }>()
 const emit = defineEmits<{
-  // Событие created отправляется после успешного создания материала
-  // Модалка не обновляет список , только сообщает родителю, что материал создан
-  created: []
+  // назначаем что у модалки есть событие
+  (event: 'created'): void
 }>()
 const title = ref('')
 const description = ref('')
 const errorMessage = ref('')
-
-function handleCloseModal() {
-  closeModal()
-}
 
 async function handleCreateCourse() {
   if (!title.value) {
@@ -70,7 +65,7 @@ async function handleCreateCourse() {
     })
 
     emit('created')// обновляет список курсов
-    handleCloseModal()
+    closeModal()
   } catch {
     errorMessage.value = 'Не удалось создать курс'
   }

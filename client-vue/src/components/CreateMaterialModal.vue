@@ -39,7 +39,7 @@
         <button
           type="button"
           class="create-material-modal__button create-material-modal__button--secondary"
-          @click="handleCloseModal"
+          @click="closeModal()"
         >
           Закрыть
         </button>
@@ -57,7 +57,10 @@ import { fetchDownloadMaterials } from '@/services/api'
 const props = defineProps<{
   courseId: number
   topicId: number
-  onCreated: () => void
+}>()
+const emit = defineEmits<{
+  //назначаем что у модалки есть событие
+  (event: 'created'): void
 }>()
 
 const materialTitle = ref('')
@@ -83,15 +86,11 @@ async function handleCreateMaterial() {
       course: props.courseId,
       topic: props.topicId,
     })
-    await props.onCreated()
-
+    emit('created') // обновляет список курсов
     closeModal()
   } catch {
     errorMessage.value = 'Не удалось создать материал'
   }
-}
-function handleCloseModal() {
-  closeModal()
 }
 </script>
 

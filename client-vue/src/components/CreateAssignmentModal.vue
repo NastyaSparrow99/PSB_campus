@@ -31,7 +31,7 @@
         <button
           type="button"
           class="create-assignment-modal__button create-assignment-modal__button--secondary"
-          @click="handleCloseModal"
+          @click="closeModal()"
         >
           Закрыть
         </button>
@@ -49,8 +49,8 @@ const props = defineProps<{
   courseId: number
 }>()
 const emit = defineEmits<{
-  //Событие created отправляется после успешного создания задания.
-  created: []
+  //назначаем что у модалки есть событие
+  (event: 'created'): void
 }>()
 const title = ref('')
 const description = ref('')
@@ -58,12 +58,13 @@ const deadline = ref('')
 const maxGrade = ref(100)
 const errorMessage = ref('')
 
-function handleCloseModal() {
-  closeModal()
-}
 async function handleCreateAssignment() {
   if (!deadline.value) {
     errorMessage.value = 'Выберите время окончания дедлайна'
+    return
+  }
+  if (!title.value) {
+    errorMessage.value = 'Введите название задания'
     return
   }
 
@@ -77,7 +78,7 @@ async function handleCreateAssignment() {
       max_grade: maxGrade.value,
     })
     emit('created')
-    handleCloseModal()
+    closeModal()
   } catch {
     errorMessage.value = 'Не удалось создать задание'
   }

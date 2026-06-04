@@ -1,7 +1,7 @@
 <template>
   <div class="create-submission-modal">
     <h2 class="create-submission-modal__title">Отправка решения</h2>
-    <p class="create-submission-modal__text">{{ props.assignmentTitle }}</p>
+    <p class="create-submission-modal__text">{{ assignment.title }}</p>
     <form class="create-submission-modal__form" @submit.prevent="handleCreateSubmission">
       <textarea
         v-model="answerText"
@@ -18,7 +18,7 @@
         <button
           type="button"
           class="create-submission-modal__button create-submission-modal__button--secondary"
-          @click="handleCloseModal"
+          @click="closeModal()"
         >
           Закрыть
         </button>
@@ -30,20 +30,17 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { closeModal } from 'jenesius-vue-modal'
-import { fetchCreateSubmission } from '@/services/api'
+import { Assignment, fetchCreateSubmission } from '@/services/api'
 const props = defineProps<{
-  assignmentId: number //assignmentId приходит из CourseView
+  assignment: Assignment,
   studentId: number
-  assignmentTitle: string
 }>()
 const emit = defineEmits<{
-  created: []
+  (event: 'created'): void // у модалки есть событие 
 }>()
 const answerText = ref('')
 const errorMessage = ref('')
-function handleCloseModal() {
-  closeModal()
-}
+
 async function handleCreateSubmission() {
   if (!answerText.value) {
     errorMessage.value = 'Введите текст решения'
@@ -54,13 +51,12 @@ async function handleCreateSubmission() {
     errorMessage.value = ''
     await fetchCreateSubmission({
       // пост запрос
-      assignment: props.assignmentId,
+      assignment: props.assignment.id,
       student: props.studentId,
       answer_text: answerText.value,
     })
     emit('created')
-
-    handleCloseModal()
+    closeModal()
   } catch {
     errorMessage.value = 'Не удалось отправить решение'
   }
@@ -86,7 +82,11 @@ async function handleCreateSubmission() {
   flex-direction: column;
   gap: 12px;
 }
-
+.create-submission-modal__text {
+  margin: 0 0 16px;
+  color: #4b5563;
+  font-weight: 700;
+}
 .create-submission-modal__input {
   width: 100%;
   box-sizing: border-box;

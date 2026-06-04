@@ -28,14 +28,9 @@
     <p v-if="errorMessage" class="course-topics__error">
       {{ errorMessage }}
     </p>
-
-      <div v-if="authStore.currentUser?.role === 'teacher'" class="course-topics__create">
-        <button type="button" class="course-topics__button" @click="handleOpenCreateTopicModal">
+        <button  v-if="authStore.currentUser?.role === 'teacher'" type="button" class="course-topics__button" @click="handleOpenCreateTopicModal">
           Создать тему
         </button>
-      </div>
-
-
     <div class="course-topics__list">
       <router-link
         v-for="topic in topics"
@@ -159,41 +154,6 @@ loadTopicsByCourse()
   margin-bottom: 24px;
 }
 
-.course-topics__modal {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background-color: rgba(0, 0, 0, 0.4);
-}
-
-.course-topics__modal-content {
-  position: relative;
-  width: 100%;
-  max-width: 480px;
-  padding: 32px;
-  border-radius: 20px;
-  background-color: #ffffff;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
-}
-
-.course-topics__modal-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  border: none;
-  background: none;
-  font-size: 24px;
-  cursor: pointer;
-}
-
-.course-topics__modal-title {
-  margin: 0 0 20px;
-  font-size: 24px;
-}
 .course-topics__form {
   display: flex;
   gap: 12px;
