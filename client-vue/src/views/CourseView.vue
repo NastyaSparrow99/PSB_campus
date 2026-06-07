@@ -120,7 +120,7 @@
           </div>
           <p
             v-if="
-              authStore.currentUser?.role === 'student' && CurrentUserSubmission(assignment)
+              authStore.currentUser?.role === 'student' && currentUserSubmission(assignment)
             "
             class="course-view__material-text"
           >
@@ -233,7 +233,7 @@ async function handleOpenCreateSubmissionModal(assignment: Assignment) {
     onCreated: loadSubmissions,
   })
 }
-function CurrentUserSubmission(assignment: Assignment) {
+function currentUserSubmission(assignment: Assignment) {
   return submissions.value.find((submission) => ( //
       submission.assignment === assignment.id && //id задания в решении совпадает с id нужного задания.Возвр бъект 
       submission.student === authStore.currentUser?.id
