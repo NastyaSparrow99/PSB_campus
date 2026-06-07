@@ -27,7 +27,7 @@
         <button
           type="button"
           class="create-topic-modal__button create-topic-modal__button--secondary"
-          @click="handleCloseModal"
+          @click="closeModal()"
         >
           Закрыть
         </button>
@@ -45,16 +45,14 @@ const props = defineProps<{
   courseId: number
 }>()
 const emit = defineEmits<{
-  // Событие created отправляется после успешного создания темы
-  created: []
+    //модалка делает POST после чего родителю нужно дать знак на перезагрузку данных уже с добавлением новых записей 
+  //назначаем что у модалки есть событие
+  (event: 'created'): void
 }>()
 const title = ref('')
 const description = ref('')
 const errorMessage = ref('')
 
-function handleCloseModal() {
-  closeModal()
-}
 async function handleCreateTopic() {
   if (!title.value.trim()) {
     errorMessage.value = 'Введите название темы'
@@ -72,7 +70,7 @@ async function handleCreateTopic() {
     // Сообщаем родителю, что тема создана
     emit('created')
 
-    handleCloseModal()
+    closeModal()
   } catch {
     errorMessage.value = 'Не удалось создать тему'
   }

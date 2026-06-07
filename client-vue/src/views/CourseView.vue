@@ -36,23 +36,21 @@
       </p>
     </section>
     <section class="course-view__materials">
-      <div class="course-view__section-header">
         <h2 class="course-view__subtitle">Материалы темы</h2>
         <span class="course-view__count">
           {{ materials.length }}
         </span>
-      </div>
+      <button
+        v-if="authStore.currentUser?.role === 'teacher'"
+        type="button"
+        class="course-view__button"
+        @click="handleOpenCreateMaterialModal"
+      >
+        Добавить материал
+      </button>
       <p v-if="!materials.length" class="course-view__empty">Материалов по теме пока нет</p>
 
       <div v-else class="course-view__materials-list">
-        <button
-          v-if="authStore.currentUser?.role === 'teacher'"
-          type="button"
-          class="course-view__button"
-          @click="handleOpenCreateMaterialModal"
-        >
-          Добавить материал
-        </button>
         <article
           v-for="material in materials"
           :key="material.id"
@@ -79,6 +77,66 @@
         </article>
       </div>
     </section>
+    <section class="course-view__assignments">
+      <div class="course-view__section-header">
+        <h2 class="course-view__subtitle">Задания курса</h2>
+
+        <span class="course-view__count">
+          {{ assignments.length }}
+        </span>
+      </div>
+
+      <button
+        v-if="authStore.currentUser?.role === 'teacher'"
+        type="button"
+        class="course-view__button"
+        @click="handleOpenCreateAssignmentModal"
+      >
+        Добавить задание
+      </button>
+
+      <p v-if="!assignments.length" class="course-view__empty">Заданий пока нет</p>
+
+      <div v-else class="course-view__materials-list">
+        <article
+          v-for="assignment in assignments"
+          :key="assignment.id"
+          class="course-view__material-item"
+        >
+          <div class="course-view__material-content">
+            <h3 class="course-view__material-title">
+              {{ assignment.title }}
+            </h3>
+
+            <p class="course-view__material-text">
+              {{ assignment.description }}
+            </p>
+
+            <p class="course-view__material-text">Дедлайн: {{ assignment.deadline }}</p>
+
+            <p class="course-view__material-text">
+              Максимальная оценка: {{ assignment.max_grade }}
+            </p>
+          </div>
+          <p
+            v-if="
+              authStore.currentUser?.role === 'student' && currentUserSubmission(assignment)
+            "
+            class="course-view__material-text"
+          >
+            Решение отправлено
+          </p>
+          <button
+            v-else-if="authStore.currentUser?.role === 'student'"
+            type="button"
+            class="course-view__button"
+            @click="handleOpenCreateSubmissionModal(assignment)"
+          >
+            Отправить решение
+          </button>
+        </article>
+      </div>
+    </section>
     <div class="course-view__actions">
       <button type="button" class="course-view__button" @click="handleLogout">Выйти</button>
     </div>
@@ -92,17 +150,31 @@ import CreateMaterialModal from '@/components/CreateMaterialModal.vue'
 import { RouteName } from '@/constants/route-names'
 import { useAuthStore } from '@/stores/auth-store'
 import { ref } from 'vue'
-import { fetchMaterials, fetchTopicById, Material, Topic } from '@/services/api'
+import {
+  fetchMaterials,
+  fetchTopicById,
+  Material,
+  Topic,
+  Assignment,
+  fetchAssignments,
+} from '@/services/api'
+import CreateAssignmentModal from '@/components/CreateAssignmentModal.vue'
+import CreateSubmissionModal from '@/components/CreateSubmissionModal.vue'
+import { fetchSubmissions, Submission } from '@/services/api'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+// route.params хранит параметры из URL.
+// Для маршрута /course/:courseId/topic/:topicId первым идёт courseId,
+// вторым — topicId. Значения приходят строками, поэтому переводим их в числа.
+const [courseId, topicId] = Object.keys(route.params).map((key) => Number(route.params[key]))
 const topicById = ref<Topic | null>(null)
 const errorMessage = ref('')
 const materials = ref<Material[]>([])
-
+const assignments = ref<Assignment[]>([])
+const submissions = ref<Submission[]>([])
 async function loadTopicById() {
-  const [topicId] = Object.keys(route.params).map((key) => Number(route.params[key]))
   try {
     errorMessage.value = '' // очищаем ошибку
 
@@ -111,12 +183,7 @@ async function loadTopicById() {
     errorMessage.value = 'Не удалось загрузить тему'
   }
 }
-
 async function loadMaterials() {
-  //const courseId = Number(route.params.courseId)
-  // Из URL достаём courseId, потому что материалы загружаются по курсу
-  // route.params.courseId приходит строкой, поэтому преобразуем значение в число
-  const [courseId] = Object.keys(route.params).map((key) => Number(route.params[key]))
   try {
     errorMessage.value = '' // очищаем ошибку
 
@@ -126,14 +193,51 @@ async function loadMaterials() {
   }
 }
 async function handleOpenCreateMaterialModal() {
-  //const courseId = Number(route.params.courseId)
-  //const topicId = Number(route.params.topicId)
-
-  // Object.keys(route.params) берёт все ключи параметров маршрута.
-  // для пути /course/:courseId/topic/:topicId первым будет courseId, вторым topicId
-  const [courseId, topicId] = Object.keys(route.params).map((key) => Number(route.params[key]))
-
   await openModal(CreateMaterialModal, { courseId, topicId, onCreated: loadMaterials })
+}
+
+async function loadAssignments() {
+  try {
+    errorMessage.value = '' // очищаем ошибку
+    assignments.value = await fetchAssignments(courseId)
+  } catch {
+    errorMessage.value = 'Не удалось загрузить задания'
+  }
+}
+
+async function handleOpenCreateAssignmentModal() {
+  await openModal(CreateAssignmentModal, {
+    courseId,
+    onCreated: loadAssignments,
+  })
+}
+
+async function loadSubmissions() {
+  try {
+    errorMessage.value = ''
+    submissions.value = await fetchSubmissions()
+  } catch {
+    errorMessage.value = 'Не удалось загрузить решения'
+  }
+}
+
+async function handleOpenCreateSubmissionModal(assignment: Assignment) {
+  if (!authStore.currentUser) {
+    errorMessage.value = 'Пользователь не найден'
+    return
+  }
+  await openModal(CreateSubmissionModal, {
+    assignment, // объект
+    studentId: authStore.currentUser.id,
+    //Когда решение создано ,то заново загружаем список решений
+    onCreated: loadSubmissions,
+  })
+}
+function currentUserSubmission(assignment: Assignment) {
+  return submissions.value.find((submission) => ( //
+      submission.assignment === assignment.id && //id задания в решении совпадает с id нужного задания.Возвр бъект 
+      submission.student === authStore.currentUser?.id
+    ))
 }
 
 function handleLogout() {
@@ -145,6 +249,8 @@ function handleLogout() {
 }
 loadTopicById()
 loadMaterials()
+loadAssignments()
+loadSubmissions()
 </script>
 
 <style scoped>

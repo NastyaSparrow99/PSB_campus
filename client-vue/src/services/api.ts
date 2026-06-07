@@ -45,8 +45,40 @@ export interface DownloadMaterialData {
   course: number
   topic: number
 }
+export interface Assignment {
+  id: number
+  course: number
+  title: string
+  description: string
+  deadline: string
+  max_grade: number
+}
 
-// Получить массив пользователей
+export interface CreateAssignment {
+  course: number
+  title: string
+  description: string
+  deadline: string
+  max_grade: number
+}
+
+export interface Submission {
+  id: number
+  assignment: number
+  student: number
+  answer_text: string
+  submitted_at?: string
+  grade?: number | null
+  feedback?: string
+}
+
+export interface CreateSubmission {
+  assignment: number
+  student: number
+  answer_text: string
+}
+
+// Пользователи
 export async function fetchPersons() {
   const response = await axios.get<User[]>(`${API_BASE_URL}/app/persons/`)
   return response.data
@@ -58,7 +90,7 @@ export async function fetchCoursesByPerson(personId: number) {
   )
   return response.data
 }
-
+// Курсы
 export async function fetchCreateCourse(data: CreateCourseData) {
   const response = await axios.post(`${API_BASE_URL}/app/courses/`, data)
   return response.data
@@ -67,6 +99,8 @@ export async function fetchCreateCourse(data: CreateCourseData) {
 export async function fetchDeleteCourse(courseId: number) {
   await axios.delete(`${API_BASE_URL}/app/courses/${courseId}/`)
 }
+
+// Темы
 export async function fetchTopicsByCourse(courseId: number) {
   //возвращает Topic[]
   const response = await axios.get<Topic[]>(
@@ -85,12 +119,14 @@ export async function fetchTopicById(topicId: number) {
   return response.data
 }
 
+// Материалы
 export async function fetchMaterials(courseId: number) {
   const response = await axios.get<Material[]>(
     `${API_BASE_URL}/app/materials/by_course/?course_id=${courseId}`,
   )
   return response.data
 }
+
 
 export async function fetchDownloadMaterials(data: DownloadMaterialData) {
   const response = await axios.post(`${API_BASE_URL}/app/materials/`, data)
@@ -100,3 +136,28 @@ export async function fetchDownloadMaterials(data: DownloadMaterialData) {
 export async function fetchDeleteMaterial(materialId: number) {
   await axios.delete(`${API_BASE_URL}/app/materials/${materialId}/`)
 }
+// Задания
+export async function fetchAssignments(courseId: number) {
+  const response = await axios.get<Assignment[]>(
+    `${API_BASE_URL}/app/assignments/?course_id=${courseId}`,
+  )
+
+  return response.data
+}
+
+export async function fetchCreateAssignment(data: CreateAssignment) {
+  const response = await axios.post<Assignment>(`${API_BASE_URL}/app/assignments/`, data)
+
+  return response.data
+}
+
+// решения 
+export async function fetchSubmissions() {
+  const response = await axios.get<Submission[]>(`${API_BASE_URL}/app/submissions/`)
+  return response.data
+}
+export async function fetchCreateSubmission(data: CreateSubmission) {
+  const response = await axios.post<Submission>(`${API_BASE_URL}/app/submissions/`, data)
+  return response.data
+}
+
