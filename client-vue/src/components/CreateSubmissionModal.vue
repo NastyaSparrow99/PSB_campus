@@ -18,7 +18,7 @@
         <button
           type="button"
           class="create-submission-modal__button create-submission-modal__button--secondary"
-          @click="closeModal()"
+          @click="() => closeModal()"
         >
           Закрыть
         </button>

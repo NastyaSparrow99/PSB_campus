@@ -36,10 +36,10 @@
       </p>
     </section>
     <section class="course-view__materials">
-        <h2 class="course-view__subtitle">Материалы темы</h2>
-        <span class="course-view__count">
-          {{ materials.length }}
-        </span>
+      <h2 class="course-view__subtitle">Материалы темы</h2>
+      <span class="course-view__count">
+        {{ materials.length }}
+      </span>
       <button
         v-if="authStore.currentUser?.role === 'teacher'"
         type="button"
@@ -117,17 +117,42 @@
             <p class="course-view__material-text">
               Максимальная оценка: {{ assignment.max_grade }}
             </p>
+            <div v-if="authStore.currentUser?.role === 'teacher'" class="course-view__submissions">
+              <h4 class="course-view__submissions-title">Решения студентов</h4>
+
+              <p
+                v-if="!getSubmissionsByAssignment(assignment).length"
+                class="course-view__material-text"
+              >
+                Пока никто не отправил решение
+              </p>
+
+              <button
+                v-for="submission in getSubmissionsByAssignment(assignment)"
+                :key="submission.id"
+                type="button"
+                class="course-view__submission-button"
+                @click="handleOpenSubmission(submission, assignment)"
+              >
+                Решение студента #{{ submission.student }}
+              </button>
+            </div>
           </div>
           <p
-            v-if="
-              authStore.currentUser?.role === 'student' && currentUserSubmission(assignment)
-            "
+            v-if="authStore.currentUser?.role === 'student' && currentUserSubmission(assignment)"
             class="course-view__material-text"
           >
             Решение отправлено
           </p>
+          <p
+            v-if="currentUserSubmission(assignment)?.grade !== null"
+            class="course-view__material-text"
+          >
+            Оценка: {{ currentUserSubmission(assignment)?.grade }} / {{ assignment.max_grade }}
+          </p>
+          <p v-else class="course-view__material-text">Оценка пока не выставлена</p>
           <button
-            v-else-if="authStore.currentUser?.role === 'student'"
+            v-if="authStore.currentUser?.role === 'student' && !currentUserSubmission(assignment)"
             type="button"
             class="course-view__button"
             @click="handleOpenCreateSubmissionModal(assignment)"
@@ -161,10 +186,11 @@ import {
 import CreateAssignmentModal from '@/components/CreateAssignmentModal.vue'
 import CreateSubmissionModal from '@/components/CreateSubmissionModal.vue'
 import { fetchSubmissions, Submission } from '@/services/api'
-
+import SubmissionModal from '@/components/SubmissionModal.vue'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+
 // route.params хранит параметры из URL.
 // Для маршрута /course/:courseId/topic/:topicId первым идёт courseId,
 // вторым — topicId. Значения приходят строками, поэтому переводим их в числа.
@@ -234,10 +260,25 @@ async function handleOpenCreateSubmissionModal(assignment: Assignment) {
   })
 }
 function currentUserSubmission(assignment: Assignment) {
-  return submissions.value.find((submission) => ( //
-      submission.assignment === assignment.id && //id задания в решении совпадает с id нужного задания.Возвр бъект 
-      submission.student === authStore.currentUser?.id
-    ))
+  return submissions.value.find(
+    (
+      submission, //
+    ) =>
+      submission.assignment === assignment.id && //id задания в решении совпадает с id нужного задания.Возвр бъект
+      submission.student === authStore.currentUser?.id,
+  )
+}
+function getSubmissionsByAssignment(assignment: Assignment) {
+  return submissions.value.filter(
+    (submission) => submission.assignment === assignment.id, //для концретного задания решения студентов фильтруем
+  )
+}
+async function handleOpenSubmission(submission: Submission, assignment: Assignment) {
+  await openModal(SubmissionModal, {
+    submission,
+    assignment,
+    onUpdated: loadSubmissions,
+  })
 }
 
 function handleLogout() {

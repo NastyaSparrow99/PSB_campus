@@ -78,6 +78,10 @@ export interface CreateSubmission {
   answer_text: string
 }
 
+export interface GradeSubmission {
+  grade: number
+}
+
 // Пользователи
 export async function fetchPersons() {
   const response = await axios.get<User[]>(`${API_BASE_URL}/app/persons/`)
@@ -127,7 +131,6 @@ export async function fetchMaterials(courseId: number) {
   return response.data
 }
 
-
 export async function fetchDownloadMaterials(data: DownloadMaterialData) {
   const response = await axios.post(`${API_BASE_URL}/app/materials/`, data)
   return response.data
@@ -151,13 +154,23 @@ export async function fetchCreateAssignment(data: CreateAssignment) {
   return response.data
 }
 
-// решения 
+// решения
 export async function fetchSubmissions() {
   const response = await axios.get<Submission[]>(`${API_BASE_URL}/app/submissions/`)
   return response.data
 }
-export async function fetchCreateSubmission(data: CreateSubmission) {
+export async function fetchCreateSubmission(data: CreateSubmission) { 
   const response = await axios.post<Submission>(`${API_BASE_URL}/app/submissions/`, data)
   return response.data
 }
-
+export async function gradeSubmission(submissionId: number, data: GradeSubmission) {
+  // потому что мы обновляем не всё решение а только одно поле оценки.
+  const response = await axios.patch<Submission>(
+    `${API_BASE_URL}/app/submissions/${submissionId}/`,
+    {
+      data,
+    },
+  )
+  // Возвращаем обновленное решение с backend
+  return response.data
+}

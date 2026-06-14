@@ -39,7 +39,7 @@
         <button
           type="button"
           class="create-material-modal__button create-material-modal__button--secondary"
-          @click="closeModal()"
+          @click="() => closeModal()"
         >
           Закрыть
         </button>
