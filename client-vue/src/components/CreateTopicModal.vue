@@ -27,7 +27,7 @@
         <button
           type="button"
           class="create-topic-modal__button create-topic-modal__button--secondary"
-          @click="closeModal()"
+          @click="() => closeModal()"
         >
           Закрыть
         </button>

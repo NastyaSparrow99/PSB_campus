@@ -29,7 +29,7 @@
     <label class="submission-details-modal__field">
       <span class="submission-details-modal__label"> Оценка </span>
       <input
-        v-model="grade"
+        v-model.number="grade"
         type="number"
         class="submission-details-modal__input"
         :min="0"
@@ -46,7 +46,7 @@
       <button
         type="button"
         class="submission-details-modal__button submission-details-modal__button--secondary"
-        @click="closeModal()"
+        @click="() => closeModal()"
       >
         Закрыть
       </button>
@@ -61,19 +61,21 @@ import { Assignment, gradeSubmission, type Submission } from '@/services/api'
 const props = defineProps<{
   submission: Submission
   assignment: Assignment
-  onUpdated: () => void
+}>()
+const emit = defineEmits<{
+  updated: []
 }>()
 
-const grade = ref(props.submission.grade ?? '')
+const grade = ref(props.submission.grade ?? 0)
 const errorMessage = ref('')
 
 async function handleSaveGrade() {
-  if (Number(grade.value) < 0) {
+  if (grade.value < 0) {
     errorMessage.value = 'Оценка не может быть меньше 0'
     return
   }
 
-  if (Number(grade.value) > Number(props.assignment.max_grade)) {
+  if (grade.value > props.assignment.max_grade) {
     errorMessage.value = `Оценка не может быть больше ${props.assignment.max_grade}`
     return
   }
@@ -82,9 +84,9 @@ async function handleSaveGrade() {
     errorMessage.value = ''
     // Отправляем PATCH-запрос на бэке и обновляем оценку конкретного решения.
     await gradeSubmission(props.submission.id, {
-     grade: Number (grade.value),
+      grade: grade.value,
     })
-    props.onUpdated()
+   emit('updated')
   } catch {
     errorMessage.value = 'Не удалось сохранить оценку'
   }

@@ -31,7 +31,7 @@
         <button
           type="button"
           class="create-assignment-modal__button create-assignment-modal__button--secondary"
-          @click="closeModal()"
+          @click="() => closeModal()"
         >
           Закрыть
         </button>

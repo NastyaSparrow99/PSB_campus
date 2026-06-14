@@ -23,7 +23,7 @@
         <button
           type="button"
           class="create-course-modal__button create-course-modal__button--secondary"
-          @click="closeModal()"
+          @click="() => closeModal()"
         >
           Закрыть
         </button>
