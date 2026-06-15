@@ -120,6 +120,7 @@ async function handleSaveGrade() {
   font-weight: 700;
 }
 
+
 .submission-details-modal__info {
   display: flex;
   flex-direction: column;
