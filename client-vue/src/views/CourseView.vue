@@ -138,19 +138,65 @@
               </button>
             </div>
           </div>
-          <p
+          <div
             v-if="authStore.currentUser?.role === 'student' && currentUserSubmission(assignment)"
-            class="course-view__material-text"
           >
-            Решение отправлено
-          </p>
-          <p
-            v-if="currentUserSubmission(assignment)?.grade !== null"
-            class="course-view__material-text"
-          >
-            Оценка: {{ currentUserSubmission(assignment)?.grade }} / {{ assignment.max_grade }}
-          </p>
-          <p v-else class="course-view__material-text">Оценка пока не выставлена</p>
+            <!--текущ студент отправил рещение по конкретному заданию-->
+            <p class="course-view__material-text">Решение отправлено</p>
+            <p
+              v-if="currentUserSubmission(assignment)?.grade !== null"
+              class="course-view__material-text"
+            >
+              Оценка: {{ currentUserSubmission(assignment)?.grade }} / {{ assignment.max_grade }}
+            </p>
+            <p v-else class="course-view__material-text">Оценка пока не выставлена</p>
+
+            <p
+              v-if="currentUserSubmission(assignment)?.teacher_comment"
+              class="course-view__material-text"
+            >
+              Комментарий преподавателя: {{ currentUserSubmission(assignment)?.teacher_comment }}
+            </p>
+            <!--от-->
+
+            <p v-else class="course-view__material-text">Комментарий пока не оставлен</p>
+          </div>
+          <button type="button" class="course-view__button" @click="handleLoadComments(assignment)">
+            Показать комментарии
+          </button>
+
+          <div class="course-view__comments">
+            <h4 class="course-view__submissions-title">Комментарии к моему решению</h4>
+
+            <p v-if="!comments.length" class="course-view__material-text">Пока нет комментариев</p>
+
+            <ul v-else class="course-view__comments-list">
+              <li v-for="comment in comments" :key="comment.id" class="course-view__comment-item">
+                <p class="course-view__material-text">
+                  {{ comment.author_name ?? `Пользователь #${comment.author}` }}
+                </p>
+                <!--имя при наличии или id-->
+
+                <p class="course-view__material-text">
+                  {{ comment.text }}
+                </p>
+              </li>
+            </ul>
+            <textarea
+              v-model="newComment"
+              class="course-view__comment-textarea"
+              placeholder="Новый комментарий"
+            />
+            <button
+              type="button"
+              class="course-view__button"
+              :disabled="!newComment.trim()"
+              @click="handleCreateCommentByAssignment(assignment)"
+            >
+              Отправить комментарий
+            </button>
+          </div>
+
           <button
             v-if="authStore.currentUser?.role === 'student' && !currentUserSubmission(assignment)"
             type="button"
@@ -185,7 +231,13 @@ import {
 } from '@/services/api'
 import CreateAssignmentModal from '@/components/CreateAssignmentModal.vue'
 import CreateSubmissionModal from '@/components/CreateSubmissionModal.vue'
-import { fetchSubmissions, Submission } from '@/services/api'
+import {
+  fetchSubmissions,
+  Submission,
+  fetchCommentsBySubmission,
+  fetchCreateSubmissionComment,
+  SubmissionComment,
+} from '@/services/api'
 import SubmissionModal from '@/components/SubmissionModal.vue'
 const route = useRoute()
 const router = useRouter()
@@ -200,6 +252,9 @@ const errorMessage = ref('')
 const materials = ref<Material[]>([])
 const assignments = ref<Assignment[]>([])
 const submissions = ref<Submission[]>([])
+const comments = ref<SubmissionComment[]>([])
+const newComment = ref('')
+
 async function loadTopicById() {
   try {
     errorMessage.value = '' // очищаем ошибку
@@ -260,12 +315,12 @@ async function handleOpenCreateSubmissionModal(assignment: Assignment) {
   })
 }
 function currentUserSubmission(assignment: Assignment) {
-  return submissions.value.find(
-    (
-      submission, //
-    ) =>
-      submission.assignment === assignment.id && //id задания в решении совпадает с id нужного задания.Возвр бъект
-      submission.student === authStore.currentUser?.id,
+  return (
+    submissions.value.find(
+      (submission) =>
+        submission.assignment === assignment.id && //id задания в решении совпадает с id нужного задания.Возвр бъект
+        submission.student === authStore.currentUser?.id,
+    ) ?? null
   )
 }
 function getSubmissionsByAssignment(assignment: Assignment) {
@@ -279,6 +334,59 @@ async function handleOpenSubmission(submission: Submission, assignment: Assignme
     assignment,
     onUpdated: loadSubmissions,
   })
+}
+async function loadCommentsBySubmission(submissionId: number) {
+  try {
+    errorMessage.value = ''
+
+    comments.value = await fetchCommentsBySubmission(submissionId)
+  } catch {
+    errorMessage.value = 'Не удалось загрузить комментарии'
+  }
+}
+
+async function handleCreateComment(submission: Submission) {
+  if (!authStore.currentUser) {
+    errorMessage.value = 'Пользователь не найден'
+    return
+  }
+  try {
+    errorMessage.value = ''
+
+    await fetchCreateSubmissionComment({
+      submission: submission.id,
+      author: authStore.currentUser.id,
+      text: newComment.value.trim(),
+    })
+
+    newComment.value = ''
+
+    await loadCommentsBySubmission(submission.id)
+  } catch {
+    errorMessage.value = 'Не удалось отправить комментарий'
+  }
+}
+
+async function handleLoadComments(assignment: Assignment) {
+  const submission = currentUserSubmission(assignment)
+
+  if (!submission) {
+    errorMessage.value = 'Решение не найдено'
+    return
+  }
+
+  await loadCommentsBySubmission(submission.id)
+}
+
+async function handleCreateCommentByAssignment(assignment: Assignment) {
+  const submission = currentUserSubmission(assignment)
+
+  if (!submission) {
+    errorMessage.value = 'Решение не найдено'
+    return
+  }
+
+  await handleCreateComment(submission)
 }
 
 function handleLogout() {
@@ -397,5 +505,37 @@ loadSubmissions()
   color: white;
   font-weight: 700;
   cursor: pointer;
+}
+.course-view__comments {
+  margin-top: 16px;
+}
+
+.course-view__comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.course-view__comment-item {
+  padding: 12px;
+  border-radius: 12px;
+  background-color: #f3f4f6;
+}
+
+.course-view__comment-textarea {
+  display: block;
+  width: 100%;
+  min-height: 88px;
+  box-sizing: border-box;
+  margin: 12px 0;
+  resize: vertical;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 16px;
+  font-family: inherit;
 }
 </style>
