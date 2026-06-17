@@ -14,6 +14,7 @@ export interface Topic {
   title: string
   description: string
   course: number
+  color: string
 }
 export interface CreateCourseData {
   title: string
@@ -25,6 +26,7 @@ export interface CreateTopicsData {
   title: string
   description: string
   course: number
+  color: string
 }
 export interface Material {
   id: number
@@ -184,7 +186,7 @@ export async function fetchCreateSubmission(data: CreateSubmission) {
   return response.data
 }
 //отправляет оценку  к конкретному решению
-export async function gradeSubmission(submissionId: number, data: GradeSubmission) {
+export async function updateSubmission(submissionId: number, data: GradeSubmission) {
 
   const response = await axios.post<Submission>(
     `${API_BASE_URL}/app/submissions/${submissionId}/grade/`,
@@ -195,7 +197,7 @@ export async function gradeSubmission(submissionId: number, data: GradeSubmissio
 }
 
 //загружаем комментарии к конкретному решению
-export async function fetchCommentsBySubmission(submissionId: number) {
+export async function getSubmissionComments(submissionId: number) {
   const response = await axios.get<SubmissionComment[]>(
     `${API_BASE_URL}/app/comments/by_submission/?submission_id=${submissionId}`,
   )
@@ -203,7 +205,7 @@ export async function fetchCommentsBySubmission(submissionId: number) {
   return response.data
 }
 //созд новый комментарий к решению
-export async function fetchCreateSubmissionComment(data: CreateSubmissionComment) {
+export async function createSubmissionComment(data: CreateSubmissionComment) {
   const response = await axios.post<SubmissionComment>(`${API_BASE_URL}/app/comments/`, data)
 
   return response.data

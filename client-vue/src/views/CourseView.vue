@@ -161,7 +161,7 @@
 
             <p v-else class="course-view__material-text">Комментарий пока не оставлен</p>
           </div>
-          <button type="button" class="course-view__button" @click="handleLoadComments(assignment)">
+          <button type="button" class="course-view__button" @click="loadComments(assignment)">
             Показать комментарии
           </button>
 
@@ -191,7 +191,7 @@
               type="button"
               class="course-view__button"
               :disabled="!newComment.trim()"
-              @click="handleCreateCommentByAssignment(assignment)"
+              @click="createCommentByAssignment(assignment)"
             >
               Отправить комментарий
             </button>
@@ -234,8 +234,8 @@ import CreateSubmissionModal from '@/components/CreateSubmissionModal.vue'
 import {
   fetchSubmissions,
   Submission,
-  fetchCommentsBySubmission,
-  fetchCreateSubmissionComment,
+  getSubmissionComments,
+  createSubmissionComment,
   SubmissionComment,
 } from '@/services/api'
 import SubmissionModal from '@/components/SubmissionModal.vue'
@@ -339,13 +339,13 @@ async function loadCommentsBySubmission(submissionId: number) {
   try {
     errorMessage.value = ''
 
-    comments.value = await fetchCommentsBySubmission(submissionId)
+    comments.value = await getSubmissionComments(submissionId)
   } catch {
     errorMessage.value = 'Не удалось загрузить комментарии'
   }
 }
 
-async function handleCreateComment(submission: Submission) {
+async function createComment(submission: Submission) {
   if (!authStore.currentUser) {
     errorMessage.value = 'Пользователь не найден'
     return
@@ -353,21 +353,22 @@ async function handleCreateComment(submission: Submission) {
   try {
     errorMessage.value = ''
 
-    await fetchCreateSubmissionComment({
+    const createdComment = await createSubmissionComment({
       submission: submission.id,
       author: authStore.currentUser.id,
       text: newComment.value.trim(),
     })
 
+    comments.value.push(createdComment)
     newComment.value = ''
 
-    await loadCommentsBySubmission(submission.id)
+
   } catch {
     errorMessage.value = 'Не удалось отправить комментарий'
   }
 }
 
-async function handleLoadComments(assignment: Assignment) {
+async function loadComments(assignment: Assignment) {
   const submission = currentUserSubmission(assignment)
 
   if (!submission) {
@@ -378,7 +379,7 @@ async function handleLoadComments(assignment: Assignment) {
   await loadCommentsBySubmission(submission.id)
 }
 
-async function handleCreateCommentByAssignment(assignment: Assignment) {
+async function createCommentByAssignment(assignment: Assignment) {
   const submission = currentUserSubmission(assignment)
 
   if (!submission) {
@@ -386,7 +387,7 @@ async function handleCreateCommentByAssignment(assignment: Assignment) {
     return
   }
 
-  await handleCreateComment(submission)
+  await createComment(submission)
 }
 
 function handleLogout() {

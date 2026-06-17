@@ -1,26 +1,20 @@
 <template>
   <header class="topbar">
     <div class="topbar__left">
-      <button type="button" class="topbar__logo-button" @click="goToHome">
+      <routerLink :to="{ name: RouteName.Login }" class="topbar__logo-button">
         <span class="topbar__logo">PSB Campus</span>
-      </button>
-
-      <p class="topbar__subtitle">
-        Единая среда для обучения и контроля прогресса
-      </p>
+      </routerLink>
+      <p class="topbar__subtitle">Единая среда для обучения и контроля прогресса</p>
     </div>
-
     <div v-if="authStore.currentUser" class="topbar__right">
-      <button type="button" class="topbar__courses-link" @click="goToDashboard">
-        Курсы
-      </button>
+      <button type="button" class="topbar__courses-link" @click="goToDashboard">Курсы</button>
 
       <button type="button" class="topbar__bell">
         <span class="topbar__bell-circle">
           <span class="topbar__bell-emoji">!</span>
         </span>
 
-        <span v-if="notificationsCount > 0" class="topbar__badge">
+        <span v-if="notificationsCount" class="topbar__badge">
           {{ notificationsCount }}
         </span>
       </button>
@@ -31,7 +25,7 @@
         </span>
 
         <span class="topbar__role-chip">
-          {{ getRoleLabel ()}}
+          {{ roleLabel }}
         </span>
       </div>
     </div>
@@ -43,13 +37,12 @@ import { useRouter } from 'vue-router'
 import { RouteName } from '@/constants/route-names'
 import { useAuthStore } from '@/stores/auth-store'
 import { UserRole } from '@/types/user'
+import { computed } from 'vue'
 const router = useRouter()
 const authStore = useAuthStore()
-
-
 const notificationsCount = 1
 
-function getRoleLabel() {
+const roleLabel = computed(() => { // действия не выполняются,  а считаются 
   if (authStore.currentUser?.role === UserRole.Teacher) {
     return 'Преподаватель'
   }
@@ -58,12 +51,10 @@ function getRoleLabel() {
     return 'Студент'
   }
 
-}
-function goToHome() {
-  router.push({
-    name: RouteName.Login,
-  })
-}
+  return ''
+})
+
+
 
 function goToDashboard() {
   if (!authStore.currentUser) {
@@ -101,7 +92,12 @@ function goToDashboard() {
   background: rgba(10, 10, 20, 0.98);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(24px);
-  font-family: Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
 }
 
 .topbar__left {

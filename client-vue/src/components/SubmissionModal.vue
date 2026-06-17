@@ -61,7 +61,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { closeModal } from 'jenesius-vue-modal'
-import { Assignment, gradeSubmission, Submission,   } from '@/services/api'
+import { Assignment, updateSubmission, Submission,   } from '@/services/api'
 
 const props = defineProps<{
   submission: Submission
@@ -85,7 +85,7 @@ async function handleSaveGrade() {
 
   try {
     errorMessage.value = ''
-    await gradeSubmission(props.submission.id, {
+    await updateSubmission(props.submission.id, {
       grade: grade.value,
       status: 'graded',
       teacher_comment: teacherComment.value,

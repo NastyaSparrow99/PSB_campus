@@ -16,11 +16,9 @@
         placeholder="Описание курса"
       />
       <label class="create-course-modal__field">
-        <span class="create-course-modal__label">Назначить студента</span>
+        <span class="create-course-modal__label"> Назначить студента </span>
 
         <select v-model="selectedStudentId" class="create-course-modal__input">
-          <option :value="null">Выберите студента</option>
-
           <option v-for="student in students" :key="student.id" :value="student.id">
             {{ student.name }}
           </option>
@@ -79,8 +77,9 @@ async function handleCreateCourse() {
       description: description.value,
       teacher: props.teacherId,
     })
-    await fetchAddStudentToCourse(createdCourse.id, {  // на конкретный курс назначаем конкретного студента из списка
-      student_id: selectedStudentId.value,//студент из списка :value="student_id"
+    await fetchAddStudentToCourse(createdCourse.id, {
+      // на конкретный курс назначаем конкретного студента из списка
+      student_id: selectedStudentId.value, //студент из списка :value="student_id"
     })
 
     emit('created') // обновляет список курсов
@@ -89,7 +88,6 @@ async function handleCreateCourse() {
     errorMessage.value = 'Не удалось создать курс'
   }
 }
-
 
 async function loadStudents() {
   try {
