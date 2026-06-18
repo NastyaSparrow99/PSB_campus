@@ -26,8 +26,10 @@
           v-for="color in COLOR_PRESETS"
           :key="color.id"
           type="button"
-          class="create-topic-modal__color-button"
-          :class="{ 'create-topic-modal__color-button--active': selectedColor === color.value }"
+          :class="[
+            'create-topic-modal__color-button',
+            { 'create-topic-modal__color-button--active': selectedColor === color.value },
+          ]"
           @click="selectColor(color.value)"
         >
           <span class="create-topic-modal__color-dot" :style="{ backgroundColor: color.value }" />

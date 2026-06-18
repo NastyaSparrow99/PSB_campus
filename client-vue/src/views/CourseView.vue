@@ -139,23 +139,23 @@
             </div>
           </div>
           <div
-            v-if="authStore.currentUser?.role === 'student' && currentUserSubmission(assignment)"
+            v-if="authStore.currentUser?.role === 'student' && getCurrentUserSubmission(assignment)"
           >
             <!--текущ студент отправил рещение по конкретному заданию-->
             <p class="course-view__material-text">Решение отправлено</p>
             <p
-              v-if="currentUserSubmission(assignment)?.grade !== null"
+              v-if="getCurrentUserSubmission(assignment)?.grade !== null"
               class="course-view__material-text"
             >
-              Оценка: {{ currentUserSubmission(assignment)?.grade }} / {{ assignment.max_grade }}
+              Оценка: {{ getCurrentUserSubmission(assignment)?.grade }} / {{ assignment.max_grade }}
             </p>
             <p v-else class="course-view__material-text">Оценка пока не выставлена</p>
 
             <p
-              v-if="currentUserSubmission(assignment)?.teacher_comment"
+              v-if="getCurrentUserSubmission(assignment)?.teacher_comment"
               class="course-view__material-text"
             >
-              Комментарий преподавателя: {{ currentUserSubmission(assignment)?.teacher_comment }}
+              Комментарий преподавателя: {{ getCurrentUserSubmission(assignment)?.teacher_comment }}
             </p>
             <!--от-->
 
@@ -198,7 +198,7 @@
           </div>
 
           <button
-            v-if="authStore.currentUser?.role === 'student' && !currentUserSubmission(assignment)"
+            v-if="authStore.currentUser?.role === 'student' && !getCurrentUserSubmission(assignment)"
             type="button"
             class="course-view__button"
             @click="handleOpenCreateSubmissionModal(assignment)"
@@ -314,7 +314,7 @@ async function handleOpenCreateSubmissionModal(assignment: Assignment) {
     onCreated: loadSubmissions,
   })
 }
-function currentUserSubmission(assignment: Assignment) {
+function getCurrentUserSubmission(assignment: Assignment) {
   return (
     submissions.value.find(
       (submission) =>
@@ -369,7 +369,7 @@ async function createComment(submission: Submission) {
 }
 
 async function loadComments(assignment: Assignment) {
-  const submission = currentUserSubmission(assignment)
+  const submission = getCurrentUserSubmission(assignment)
 
   if (!submission) {
     errorMessage.value = 'Решение не найдено'
@@ -380,7 +380,7 @@ async function loadComments(assignment: Assignment) {
 }
 
 async function createCommentByAssignment(assignment: Assignment) {
-  const submission = currentUserSubmission(assignment)
+  const submission = getCurrentUserSubmission(assignment)
 
   if (!submission) {
     errorMessage.value = 'Решение не найдено'
