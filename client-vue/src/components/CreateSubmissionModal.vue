@@ -63,66 +63,104 @@ async function handleCreateSubmission() {
 }
 </script>
 
+
 <style scoped>
 .create-submission-modal {
   width: 480px;
+  max-width: 92vw;
+  box-sizing: border-box;
   padding: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
-  background-color: #ffffff;
+  background: rgba(25, 25, 35, 0.96);
+  color: #ffffff;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .create-submission-modal__title {
+  margin: 0 0 12px;
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.create-submission-modal__text {
   margin: 0 0 20px;
-  font-size: 24px;
-  color: #111827;
+  color: #b2bec3;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
 }
 
 .create-submission-modal__form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
-.create-submission-modal__text {
-  margin: 0 0 16px;
-  color: #4b5563;
-  font-weight: 700;
-}
+
 .create-submission-modal__input {
   width: 100%;
+  min-height: 140px;
   box-sizing: border-box;
-  min-height: 120px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 16px;
-  font-family: inherit;
   resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 13px 15px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: 15px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.create-submission-modal__input::placeholder {
+  color: #9ca3af;
+}
+
+.create-submission-modal__input:focus {
+  border-color: #6c5ce7;
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.18);
 }
 
 .create-submission-modal__error {
   margin: 0;
-  color: #dc2626;
+  padding: 12px 14px;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  border-radius: 12px;
+  background: rgba(127, 29, 29, 0.35);
+  color: #fecaca;
+  font-size: 14px;
   font-weight: 700;
 }
 
 .create-submission-modal__actions {
   display: flex;
+  justify-content: flex-end;
   gap: 12px;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 .create-submission-modal__button {
   border: none;
-  border-radius: 10px;
-  padding: 10px 16px;
-  background-color: #111827;
+  border-radius: 12px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #6c5ce7 0%, #5d4fd6 100%);
   color: #ffffff;
+  box-shadow: 0 8px 24px rgba(108, 92, 231, 0.28);
   font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
 }
 
 .create-submission-modal__button--secondary {
-  background-color: #e5e7eb;
-  color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: #b2bec3;
+  box-shadow: none;
 }
 </style>

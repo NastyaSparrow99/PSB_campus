@@ -139,6 +139,10 @@ export async function fetchCreateTopic(data: CreateTopicsData) {
   return response.data
 }
 
+export async function deleteTopic(topicId: number) {
+  await axios.delete(`${API_BASE_URL}/app/topics/${topicId}/`)
+}
+
 export async function fetchTopicById(topicId: number) {
   const response = await axios.get<Topic>(`${API_BASE_URL}/app/topics/${topicId}/`)
   return response.data

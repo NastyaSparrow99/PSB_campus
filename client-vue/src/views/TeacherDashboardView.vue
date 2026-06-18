@@ -1,5 +1,5 @@
 <template>
-  <TopBar />
+  <topBar />
   <section class="teacher-dashboard">
     <h1 class="teacher-dashboard__title">Кабинет преподавателя:</h1>
     <p class="teacher-dashboard__user">
