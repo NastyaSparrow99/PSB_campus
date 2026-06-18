@@ -32,17 +32,22 @@
         v-model.number="grade"
         type="number"
         class="submission-details-modal__input"
-        :min="0"
-        :max="assignment.max_grade"
         placeholder="Введите оценку"
-      /><!--атрибуты min max для input-->
+      />
     </label>
     <p class="submission-modal__hint">Максимальная оценка: {{ assignment.max_grade }}</p>
     <div class="submission-details-modal__actions">
       <button type="button" class="submission-details-modal__button" @click="handleSaveGrade">
         Сохранить оценку
       </button>
-
+      <label class="submission-details-modal__field">
+        <span class="submission-details-modal__label"> Комментарий преподавателя </span>
+        <textarea
+          v-model="teacherComment"
+          class="submission-details-modal__textarea"
+          placeholder="Напишите комментарий к решению"
+        />
+      </label>
       <button
         type="button"
         class="submission-details-modal__button submission-details-modal__button--secondary"
@@ -56,25 +61,23 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { closeModal } from 'jenesius-vue-modal'
-import { Assignment, gradeSubmission, type Submission } from '@/services/api'
+import { Assignment, updateSubmission, Submission,   } from '@/services/api'
 
 const props = defineProps<{
   submission: Submission
   assignment: Assignment
 }>()
 const emit = defineEmits<{
-  updated: []
+  (event: 'updated'): void
 }>()
-
 const grade = ref(props.submission.grade ?? 0)
 const errorMessage = ref('')
-
+const teacherComment = ref(props.submission.teacher_comment ?? '')
 async function handleSaveGrade() {
   if (grade.value < 0) {
     errorMessage.value = 'Оценка не может быть меньше 0'
     return
   }
-
   if (grade.value > props.assignment.max_grade) {
     errorMessage.value = `Оценка не может быть больше ${props.assignment.max_grade}`
     return
@@ -82,17 +85,19 @@ async function handleSaveGrade() {
 
   try {
     errorMessage.value = ''
-    // Отправляем PATCH-запрос на бэке и обновляем оценку конкретного решения.
-    await gradeSubmission(props.submission.id, {
+    await updateSubmission(props.submission.id, {
       grade: grade.value,
+      status: 'graded',
+      teacher_comment: teacherComment.value,
     })
    emit('updated')
+   closeModal()
   } catch {
     errorMessage.value = 'Не удалось сохранить оценку'
   }
 }
 
-closeModal()
+
 </script>
 
 <style scoped>
@@ -114,6 +119,7 @@ closeModal()
   color: #dc2626;
   font-weight: 700;
 }
+
 
 .submission-details-modal__info {
   display: flex;
@@ -152,7 +158,17 @@ closeModal()
   color: #111827;
   line-height: 1.5;
 }
-
+.submission-details-modal__textarea {
+  width: 100%;
+  min-height: 96px;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 16px;
+  font-family: inherit;
+}
 .submission-details-modal__field {
   display: block;
   margin-bottom: 20px;

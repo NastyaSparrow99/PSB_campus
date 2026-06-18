@@ -14,6 +14,7 @@ export interface Topic {
   title: string
   description: string
   course: number
+  color: string
 }
 export interface CreateCourseData {
   title: string
@@ -25,6 +26,7 @@ export interface CreateTopicsData {
   title: string
   description: string
   course: number
+  color: string
 }
 export interface Material {
   id: number
@@ -69,7 +71,7 @@ export interface Submission {
   answer_text: string
   submitted_at?: string
   grade?: number | null
-  feedback?: string
+  teacher_comment?: string
 }
 
 export interface CreateSubmission {
@@ -79,7 +81,26 @@ export interface CreateSubmission {
 }
 
 export interface GradeSubmission {
-  grade: number
+  grade: number | null
+  status: string
+  teacher_comment: string
+}
+export interface SubmissionComment {
+  id: number
+  submission: number
+  author: number
+  author_name?: string
+  text: string
+  created_at?: string
+}
+
+export interface CreateSubmissionComment {
+  submission: number
+  author: number
+  text: string
+}
+export interface AddStudentToCourse {
+  student_id: number
 }
 
 // Пользователи
@@ -154,23 +175,47 @@ export async function fetchCreateAssignment(data: CreateAssignment) {
   return response.data
 }
 
-// решения
+// все решения
 export async function fetchSubmissions() {
   const response = await axios.get<Submission[]>(`${API_BASE_URL}/app/submissions/`)
   return response.data
 }
+//созд решение студента
 export async function fetchCreateSubmission(data: CreateSubmission) { 
   const response = await axios.post<Submission>(`${API_BASE_URL}/app/submissions/`, data)
   return response.data
 }
-export async function gradeSubmission(submissionId: number, data: GradeSubmission) {
-  // потому что мы обновляем не всё решение а только одно поле оценки.
-  const response = await axios.patch<Submission>(
-    `${API_BASE_URL}/app/submissions/${submissionId}/`,
-    {
+//отправляет оценку  к конкретному решению
+export async function updateSubmission(submissionId: number, data: GradeSubmission) {
+
+  const response = await axios.post<Submission>(
+    `${API_BASE_URL}/app/submissions/${submissionId}/grade/`,
       data,
-    },
   )
   // Возвращаем обновленное решение с backend
+  return response.data
+}
+
+//загружаем комментарии к конкретному решению
+export async function getSubmissionComments(submissionId: number) {
+  const response = await axios.get<SubmissionComment[]>(
+    `${API_BASE_URL}/app/comments/by_submission/?submission_id=${submissionId}`,
+  )
+
+  return response.data
+}
+//созд новый комментарий к решению
+export async function createSubmissionComment(data: CreateSubmissionComment) {
+  const response = await axios.post<SubmissionComment>(`${API_BASE_URL}/app/comments/`, data)
+
+  return response.data
+}
+//добавляем студента на курс
+export async function fetchAddStudentToCourse(courseId: number, data: AddStudentToCourse) {
+  const response = await axios.post(
+    `${API_BASE_URL}/app/courses/${courseId}/add_student/`,
+    data,
+  )
+
   return response.data
 }
